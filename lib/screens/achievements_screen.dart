@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/achievement.dart';
-import '../services/achievement_service.dart';
+import '../providers.dart';
 
-class AchievementsScreen extends StatefulWidget {
+class AchievementsScreen extends ConsumerStatefulWidget {
   const AchievementsScreen({super.key});
 
   @override
-  State<AchievementsScreen> createState() => _AchievementsScreenState();
+  ConsumerState<AchievementsScreen> createState() =>
+      _AchievementsScreenState();
 }
 
-class _AchievementsScreenState extends State<AchievementsScreen> {
-  late AchievementService achievementService;
+class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
   List<Achievement> unlockedAchievements = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initAndLoad();
-  }
-
-  Future<void> _initAndLoad() async {
-    achievementService = AchievementService();
-    await achievementService.init();
-    await _loadAchievements();
+    _loadAchievements();
   }
 
   Future<void> _loadAchievements() async {
@@ -31,7 +26,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       isLoading = true;
     });
 
-    final achievements = await achievementService.getAchievements();
+    final achievements =
+        await ref.read(achievementServiceProvider).getAchievements();
 
     setState(() {
       unlockedAchievements = achievements;

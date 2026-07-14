@@ -1,30 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/game_mode.dart';
 import '../models/statistics.dart';
-import '../services/statistics_service.dart';
+import '../providers.dart';
 
-class StatisticsScreen extends StatefulWidget {
+class StatisticsScreen extends ConsumerStatefulWidget {
   const StatisticsScreen({super.key});
 
   @override
-  State<StatisticsScreen> createState() => _StatisticsScreenState();
+  ConsumerState<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
-class _StatisticsScreenState extends State<StatisticsScreen> {
-  late StatisticsService statisticsService;
+class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   Statistics? statistics;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initAndLoadStats();
-  }
-
-  Future<void> _initAndLoadStats() async {
-    statisticsService = StatisticsService();
-    await statisticsService.init();
-    await _loadStatistics();
+    _loadStatistics();
   }
 
   Future<void> _loadStatistics() async {
@@ -32,7 +26,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       isLoading = true;
     });
 
-    final stats = await statisticsService.getStatistics();
+    final stats = await ref.read(statisticsServiceProvider).getStatistics();
 
     setState(() {
       statistics = stats;
@@ -61,7 +55,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
 
     if (confirmed == true && mounted) {
-      await statisticsService.reset();
+      await ref.read(statisticsServiceProvider).reset();
       await _loadStatistics();
     }
   }

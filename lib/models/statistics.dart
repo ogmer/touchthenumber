@@ -57,16 +57,22 @@ class Statistics {
     };
   }
 
+  // 改ざん・破損した値（負数や数値以外）は0として読み込む
+  static int _readNonNegativeInt(dynamic value) {
+    if (value is int && value >= 0) return value;
+    return 0;
+  }
+
   factory Statistics.fromJson(Map<String, dynamic> json) {
     return Statistics(
       totalGames: (json['totalGames'] as Map<String, dynamic>).map(
-        (k, v) => MapEntry(GameMode.values.byName(k), v as int),
+        (k, v) => MapEntry(GameMode.values.byName(k), _readNonNegativeInt(v)),
       ),
       totalTime: (json['totalTime'] as Map<String, dynamic>).map(
-        (k, v) => MapEntry(GameMode.values.byName(k), v as int),
+        (k, v) => MapEntry(GameMode.values.byName(k), _readNonNegativeInt(v)),
       ),
       bestTime: (json['bestTime'] as Map<String, dynamic>).map(
-        (k, v) => MapEntry(GameMode.values.byName(k), v as int),
+        (k, v) => MapEntry(GameMode.values.byName(k), _readNonNegativeInt(v)),
       ),
     );
   }

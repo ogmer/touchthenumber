@@ -5,11 +5,9 @@ import '../models/ranking_entry.dart';
 
 class RankingService {
   static const int _maxRankings = 10;
-  late SharedPreferences _prefs;
+  final SharedPreferences _prefs;
 
-  Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
-  }
+  RankingService(this._prefs);
 
   String _getRankingKey(GameMode mode) => 'ranking_${mode.name}';
 
@@ -21,10 +19,28 @@ class RankingService {
       return [];
     }
 
-    final List<dynamic> jsonList = jsonDecode(jsonString);
-    return jsonList
-        .map((json) => RankingEntry.fromJson(json as Map<String, dynamic>))
-        .toList();
+    try {
+      final jsonList = jsonDecode(jsonString) as List<dynamic>;
+      final entries = <RankingEntry>[];
+      for (final json in jsonList) {
+        try {
+          final entry = RankingEntry.fromJson(json as Map<String, dynamic>);
+          // 改ざん・破損したエントリ（0以下のタイムなど）は除外する
+          if (entry.timeInMilliseconds > 0) {
+            entries.add(entry);
+          }
+        } catch (e) {
+          // 壊れたエントリは読み飛ばす
+        }
+      }
+      entries.sort(
+        (a, b) => a.timeInMilliseconds.compareTo(b.timeInMilliseconds),
+      );
+      return entries.take(_maxRankings).toList();
+    } catch (e) {
+      // データ全体が壊れている場合は空のランキングとして扱う
+      return [];
+    }
   }
 
   Future<void> addRanking(GameMode mode, int timeInMilliseconds) async {

@@ -3,18 +3,23 @@ import '../models/app_theme.dart';
 
 class SettingsService {
   static const String _soundEnabledKey = 'sound_enabled';
+  static const String _bgmEnabledKey = 'bgm_enabled';
   static const String _themeKey = 'app_theme';
 
-  late SharedPreferences _prefs;
+  final SharedPreferences _prefs;
 
-  Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
-  }
+  SettingsService(this._prefs);
 
   bool get isSoundEnabled => _prefs.getBool(_soundEnabledKey) ?? true;
 
   Future<void> setSoundEnabled(bool enabled) async {
     await _prefs.setBool(_soundEnabledKey, enabled);
+  }
+
+  bool get isBgmEnabled => _prefs.getBool(_bgmEnabledKey) ?? true;
+
+  Future<void> setBgmEnabled(bool enabled) async {
+    await _prefs.setBool(_bgmEnabledKey, enabled);
   }
 
   AppTheme get theme {

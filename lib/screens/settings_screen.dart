@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_theme.dart';
-import '../services/settings_service.dart';
+import '../providers.dart';
 
-class SettingsScreen extends StatefulWidget {
-  final SettingsService settingsService;
-  final VoidCallback onThemeChanged;
-
-  const SettingsScreen({
-    super.key,
-    required this.settingsService,
-    required this.onThemeChanged,
-  });
+class SettingsScreen extends ConsumerStatefulWidget {
+  const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
+    final settingsService = ref.watch(settingsServiceProvider);
+    final currentTheme = ref.watch(themeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('設定'),
@@ -38,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           ...AppTheme.values.map((theme) {
-            final isSelected = widget.settingsService.theme == theme;
+            final isSelected = currentTheme == theme;
             return ListTile(
               leading: Container(
                 width: 40,
@@ -53,11 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               title: Text(theme.displayName),
               trailing: isSelected ? const Icon(Icons.check) : null,
-              onTap: () async {
-                await widget.settingsService.setTheme(theme);
-                setState(() {});
-                widget.onThemeChanged();
-              },
+              onTap: () => ref.read(themeProvider.notifier).setTheme(theme),
             );
           }),
           const Divider(),
@@ -65,13 +58,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('サウンド'),
             subtitle: const Text('効果音とバイブレーション'),
             secondary: Icon(
-              widget.settingsService.isSoundEnabled
+              settingsService.isSoundEnabled
                   ? Icons.volume_up
                   : Icons.volume_off,
             ),
-            value: widget.settingsService.isSoundEnabled,
+            value: settingsService.isSoundEnabled,
             onChanged: (value) async {
-              await widget.settingsService.setSoundEnabled(value);
+              await settingsService.setSoundEnabled(value);
+              setState(() {});
+            },
+          ),
+          SwitchListTile(
+            title: const Text('BGM'),
+            subtitle: const Text('タイトル・プレイ中の音楽'),
+            secondary: Icon(
+              settingsService.isBgmEnabled
+                  ? Icons.music_note
+                  : Icons.music_off,
+            ),
+            value: settingsService.isBgmEnabled,
+            onChanged: (value) async {
+              await settingsService.setBgmEnabled(value);
+              // 切り替えを即時反映する（この画面はメニュー階層なのでタイトル曲）
+              final audio = ref.read(audioServiceProvider);
+              if (value) {
+                audio.startTitleBgm();
+              } else {
+                await audio.stopBgm();
+              }
               setState(() {});
             },
           ),

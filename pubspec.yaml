@@ -38,6 +38,9 @@ dependencies:
   audioplayers: ^5.2.1
   confetti: ^0.7.0
   window_manager: ^0.3.7
+  flutter_riverpod: ^3.3.2
+  go_router: ^17.2.3
+  dio: ^5.10.0
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +63,20 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/sounds/
+
+  # 日本語フォント（M PLUS Rounded 1c）。Flutter Web既定のRobotoは日本語グリフを
+  # 持たず文字化けするため同梱する。tool/subset_font.py でアプリ使用文字に
+  # サブセット済み（元は各3MB超 → 各約160KB）。日本語テキストを追加したら再生成すること。
+  fonts:
+    - family: MPLUSRounded1c
+      fonts:
+        - asset: assets/fonts/MPLUSRounded1c-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/MPLUSRounded1c-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:

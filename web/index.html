@@ -20,6 +20,27 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
+  <!--
+    Content Security Policy（XSSなどへの多層防御）について:
+    CSPはmetaタグに書くと `flutter run`（デバッグ）のDDCがインラインscript/evalを
+    使えなくなり、真っ白な画面で起動できなくなる。またframe-ancestors等はmetaタグでは
+    効かない。そのため本番リリースの配信サーバー側でHTTPレスポンスヘッダーとして
+    設定すること。CanvasKitレンダラー使用時の例:
+
+      Content-Security-Policy:
+        default-src 'self';
+        script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com;
+        style-src 'self' 'unsafe-inline';
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: blob:;
+        connect-src 'self' https://www.gstatic.com https://fonts.gstatic.com;
+        worker-src 'self' blob:;
+        object-src 'none'; base-uri 'self'; frame-ancestors 'none';
+      X-Content-Type-Options: nosniff
+      Referrer-Policy: no-referrer
+  -->
+  <meta name="referrer" content="no-referrer">
+
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">

@@ -5,11 +5,10 @@ import '../models/statistics.dart';
 
 class StatisticsService {
   static const String _statisticsKey = 'statistics';
-  late SharedPreferences _prefs;
+  static const String _dailyCountKey = 'daily_count';
+  final SharedPreferences _prefs;
 
-  Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
-  }
+  StatisticsService(this._prefs);
 
   Future<Statistics> getStatistics() async {
     final jsonString = _prefs.getString(_statisticsKey);
@@ -24,6 +23,37 @@ class StatisticsService {
     } catch (e) {
       return Statistics.empty();
     }
+  }
+
+  String _todayString() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  /// 今日クリアした回数（日付が変わると0に戻る）
+  Future<int> getTodayGamesCount() async {
+    final jsonString = _prefs.getString(_dailyCountKey);
+    if (jsonString == null) return 0;
+
+    try {
+      final json = jsonDecode(jsonString) as Map<String, dynamic>;
+      if (json['date'] == _todayString()) {
+        final count = json['count'];
+        // 改ざん・破損した値は0として扱う
+        return count is int && count >= 0 ? count : 0;
+      }
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  Future<void> _incrementTodayGamesCount() async {
+    final count = await getTodayGamesCount();
+    await _prefs.setString(
+      _dailyCountKey,
+      jsonEncode({'date': _todayString(), 'count': count + 1}),
+    );
   }
 
   Future<void> recordGame(GameMode mode, int timeInMilliseconds) async {
@@ -49,9 +79,12 @@ class StatisticsService {
 
     final jsonString = jsonEncode(updatedStats.toJson());
     await _prefs.setString(_statisticsKey, jsonString);
+
+    await _incrementTodayGamesCount();
   }
 
   Future<void> reset() async {
     await _prefs.remove(_statisticsKey);
+    await _prefs.remove(_dailyCountKey);
   }
 }

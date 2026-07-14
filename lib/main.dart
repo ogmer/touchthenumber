@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'services/settings_service.dart';
-import 'screens/home_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'providers.dart';
+import 'router.dart';
 // 条件付きインポート: Web版とデスクトップ版で異なる実装を使用
 import 'window_setup_stub.dart'
     if (dart.library.io) 'window_setup_desktop.dart';
@@ -11,34 +13,32 @@ void main() async {
   // プラットフォームに応じたウィンドウ設定
   await setupWindow();
 
-  final settingsService = SettingsService();
-  await settingsService.init();
+  final prefs = await SharedPreferences.getInstance();
 
-  runApp(MyApp(settingsService: settingsService));
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatefulWidget {
-  final SettingsService settingsService;
-
-  const MyApp({super.key, required this.settingsService});
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
 
-class _MyAppState extends State<MyApp> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Touch the Number',
       theme: ThemeData(
-        colorScheme: widget.settingsService.theme.colorScheme,
+        colorScheme: theme.colorScheme,
         useMaterial3: true,
+        // 日本語グリフを持つ同梱フォントを全体の既定にする（Web版の文字化け対策）
+        fontFamily: 'MPLUSRounded1c',
       ),
-      home: HomeScreen(
-        settingsService: widget.settingsService,
-        onThemeChanged: () => setState(() {}),
-      ),
+      routerConfig: ref.watch(routerProvider),
     );
   }
 }

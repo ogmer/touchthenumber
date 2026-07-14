@@ -6,11 +6,9 @@ import '../models/statistics.dart';
 
 class AchievementService {
   static const String _achievementsKey = 'achievements';
-  late SharedPreferences _prefs;
+  final SharedPreferences _prefs;
 
-  Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
-  }
+  AchievementService(this._prefs);
 
   Future<List<Achievement>> getAchievements() async {
     final jsonString = _prefs.getString(_achievementsKey);
@@ -55,6 +53,7 @@ class AchievementService {
     Statistics stats,
     GameMode lastPlayedMode,
     int lastTime,
+    int todayGamesCount,
   ) async {
     final achievements = await getAchievements();
     final newAchievements = <AchievementType>[];
@@ -101,6 +100,12 @@ class AchievementService {
         !isUnlocked(AchievementType.allModes, achievements)) {
       await unlockAchievement(AchievementType.allModes);
       newAchievements.add(AchievementType.allModes);
+    }
+
+    if (todayGamesCount >= 10 &&
+        !isUnlocked(AchievementType.perfectDay, achievements)) {
+      await unlockAchievement(AchievementType.perfectDay);
+      newAchievements.add(AchievementType.perfectDay);
     }
 
     return newAchievements;

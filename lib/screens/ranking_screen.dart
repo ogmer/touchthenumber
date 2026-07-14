@@ -1,31 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/game_mode.dart';
 import '../models/ranking_entry.dart';
-import '../services/ranking_service.dart';
+import '../providers.dart';
 
-class RankingScreen extends StatefulWidget {
+class RankingScreen extends ConsumerStatefulWidget {
   const RankingScreen({super.key});
 
   @override
-  State<RankingScreen> createState() => _RankingScreenState();
+  ConsumerState<RankingScreen> createState() => _RankingScreenState();
 }
 
-class _RankingScreenState extends State<RankingScreen> {
+class _RankingScreenState extends ConsumerState<RankingScreen> {
   GameMode selectedMode = GameMode.easy;
-  late RankingService rankingService;
   List<RankingEntry> rankings = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initAndLoadRankings();
-  }
-
-  Future<void> _initAndLoadRankings() async {
-    rankingService = RankingService();
-    await rankingService.init();
-    await _loadRankings();
+    _loadRankings();
   }
 
   Future<void> _loadRankings() async {
@@ -33,7 +27,8 @@ class _RankingScreenState extends State<RankingScreen> {
       isLoading = true;
     });
 
-    final loadedRankings = await rankingService.getRankings(selectedMode);
+    final loadedRankings =
+        await ref.read(rankingServiceProvider).getRankings(selectedMode);
 
     setState(() {
       rankings = loadedRankings;
@@ -62,7 +57,7 @@ class _RankingScreenState extends State<RankingScreen> {
     );
 
     if (confirmed == true && mounted) {
-      await rankingService.resetRankings(selectedMode);
+      await ref.read(rankingServiceProvider).resetRankings(selectedMode);
       await _loadRankings();
     }
   }

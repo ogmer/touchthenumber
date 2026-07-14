@@ -1,86 +1,100 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:confetti/confetti.dart';
 import '../models/game_mode.dart';
 import '../models/achievement.dart';
+import '../providers.dart';
 import '../services/audio_service.dart';
-import '../services/ranking_service.dart';
-import '../services/settings_service.dart';
-import '../services/statistics_service.dart';
-import '../services/achievement_service.dart';
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends ConsumerStatefulWidget {
   final GameMode gameMode;
 
   const GameScreen({super.key, required this.gameMode});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+/// グリッド全体（タイル＋隙間）が利用可能領域に収まるセルの一辺を返す
+@visibleForTesting
+double calcCellSize({
+  required double availableWidth,
+  required double availableHeight,
+  required int gridSize,
+  double spacing = 8.0,
+}) {
+  final totalSpacing = spacing * (gridSize - 1);
+  final fit = min(
+    (availableWidth - totalSpacing) / gridSize,
+    (availableHeight - totalSpacing) / gridSize,
+  );
+  return fit.clamp(28.0, 120.0);
+}
+
+class _GameScreenState extends ConsumerState<GameScreen>
+    with SingleTickerProviderStateMixin {
   late List<int> numbers;
   late List<bool> tapped;
   int currentNumber = 1;
   int elapsedMilliseconds = 0;
+  final Stopwatch _stopwatch = Stopwatch();
   Timer? timer;
   bool isPlaying = false;
   late AudioService audioService;
-  late RankingService rankingService;
-  late StatisticsService statisticsService;
-  late AchievementService achievementService;
   Set<int> animatingNumbers = {};
+  int? shakingIndex;
+  int shakeCount = 0;
   late ConfettiController _confettiController;
+  late AnimationController _entranceController;
 
   @override
   void initState() {
     super.initState();
+    audioService = ref.read(audioServiceProvider);
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _initServices();
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
     _initGame();
-  }
-
-  Future<void> _initServices() async {
-    final settingsService = SettingsService();
-    await settingsService.init();
-    audioService = AudioService(settingsService);
-
-    rankingService = RankingService();
-    await rankingService.init();
-
-    statisticsService = StatisticsService();
-    await statisticsService.init();
-
-    achievementService = AchievementService();
-    await achievementService.init();
   }
 
   void _initGame() {
     numbers = List.generate(widget.gameMode.maxNumber, (index) => index + 1);
     numbers.shuffle(Random());
     tapped = List.generate(widget.gameMode.maxNumber, (index) => false);
+    animatingNumbers.clear();
+    shakingIndex = null;
     currentNumber = 1;
     elapsedMilliseconds = 0;
     isPlaying = false;
+    _stopwatch.reset();
+    // タイルを対角線状に弾ませながら登場させる
+    _entranceController.forward(from: 0);
   }
 
   void _startTimer() {
-    timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    _stopwatch.start();
+    timer = Timer.periodic(const Duration(milliseconds: 33), (timer) {
       setState(() {
-        elapsedMilliseconds += 10;
+        elapsedMilliseconds = _stopwatch.elapsedMilliseconds;
       });
     });
   }
 
   void _stopTimer() {
     timer?.cancel();
+    _stopwatch.stop();
+    elapsedMilliseconds = _stopwatch.elapsedMilliseconds;
   }
 
-  void _onNumberTap(int index) async {
+  void _onNumberTap(int index) {
     if (!isPlaying) {
       isPlaying = true;
       _startTimer();
+      audioService.startGameBgm();
     }
 
     final tappedNumber = numbers[index];
@@ -89,36 +103,56 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         tapped[index] = true;
         animatingNumbers.add(index);
+        currentNumber++;
       });
 
-      await audioService.playCorrectSound();
+      audioService.playCorrectSound();
 
-      await Future.delayed(const Duration(milliseconds: 300));
-      setState(() {
-        animatingNumbers.remove(index);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          setState(() {
+            animatingNumbers.remove(index);
+          });
+        }
       });
-
-      currentNumber++;
 
       if (currentNumber > widget.gameMode.maxNumber) {
-        _stopTimer();
-        _confettiController.play();
-        await audioService.playCompleteSound();
-        await rankingService.addRanking(widget.gameMode, elapsedMilliseconds);
-        await statisticsService.recordGame(widget.gameMode, elapsedMilliseconds);
-
-        final stats = await statisticsService.getStatistics();
-        final newAchievements = await achievementService.checkAchievements(
-          stats,
-          widget.gameMode,
-          elapsedMilliseconds,
-        );
-
-        _showCompleteDialog(newAchievements);
+        _finishGame();
       }
     } else {
-      await audioService.playErrorSound();
+      setState(() {
+        shakingIndex = index;
+        shakeCount++;
+      });
+      audioService.playErrorSound();
     }
+  }
+
+  Future<void> _finishGame() async {
+    _stopTimer();
+    final finalTime = elapsedMilliseconds;
+    setState(() {});
+
+    _confettiController.play();
+    await audioService.stopBgm();
+    audioService.playCompleteSound();
+
+    final statisticsService = ref.read(statisticsServiceProvider);
+    await ref.read(rankingServiceProvider).addRanking(widget.gameMode, finalTime);
+    await statisticsService.recordGame(widget.gameMode, finalTime);
+
+    final stats = await statisticsService.getStatistics();
+    final todayGamesCount = await statisticsService.getTodayGamesCount();
+    final newAchievements =
+        await ref.read(achievementServiceProvider).checkAchievements(
+      stats,
+      widget.gameMode,
+      finalTime,
+      todayGamesCount,
+    );
+
+    if (!mounted) return;
+    _showCompleteDialog(newAchievements);
   }
 
   void _showCompleteDialog(List<AchievementType> newAchievements) {
@@ -126,10 +160,23 @@ class _GameScreenState extends State<GameScreen> {
     final milliseconds = elapsedMilliseconds % 1000;
     final timeString = '$seconds.${milliseconds.toString().padLeft(3, '0')}s';
 
-    showDialog(
+    showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 500),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        // バネのように弾んで登場させる
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.elasticOut,
+        );
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: curved, child: child),
+        );
+      },
+      pageBuilder: (context, animation, secondaryAnimation) => AlertDialog(
         title: const Text('クリア！'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -196,10 +243,87 @@ class _GameScreenState extends State<GameScreen> {
     return '$seconds.${milliseconds.toString().padLeft(3, '0')}';
   }
 
+  Widget _buildTile(int index, double fontSize) {
+    final number = numbers[index];
+    final isTapped = tapped[index];
+    final isAnimating = animatingNumbers.contains(index);
+    final gridSize = widget.gameMode.gridSize;
+
+    // 対角線状に順番にポップさせる登場アニメーション
+    final diagonal = (index ~/ gridSize) + (index % gridSize);
+    final maxDiagonal = 2 * (gridSize - 1);
+    final start = maxDiagonal == 0 ? 0.0 : (diagonal / maxDiagonal) * 0.55;
+    final entrance = CurvedAnimation(
+      parent: _entranceController,
+      curve: Interval(start, (start + 0.45).clamp(0.0, 1.0),
+          curve: Curves.elasticOut),
+    );
+
+    // 跳ねている最中は「アクティブな見た目」を保ち、跳ね終わってから消す
+    final showActive = !isTapped || isAnimating;
+
+    // タップ後: 一瞬拡大してからふわっと消える
+    Widget tile = AnimatedScale(
+      scale: isAnimating ? 1.25 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      child: AnimatedOpacity(
+        opacity: isTapped && !isAnimating ? 0.0 : 1.0,
+        duration: const Duration(milliseconds: 300),
+        child: Material(
+          color: showActive
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
+          elevation: showActive ? 3 : 0,
+          shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+          child: InkWell(
+            onTap: isTapped ? null : () => _onNumberTap(index),
+            borderRadius: BorderRadius.circular(12),
+            child: Center(
+              child: Text(
+                number.toString(),
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                  color: showActive ? Colors.white : Colors.grey[500],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // ミスタップ: 左右にプルプル震える
+    if (shakingIndex == index) {
+      tile = TweenAnimationBuilder<double>(
+        key: ValueKey('shake_${index}_$shakeCount'),
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 400),
+        onEnd: () {
+          if (mounted && shakingIndex == index) {
+            setState(() => shakingIndex = null);
+          }
+        },
+        builder: (context, t, child) {
+          final dx = sin(t * pi * 4) * 8 * (1 - t);
+          return Transform.translate(offset: Offset(dx, 0), child: child);
+        },
+        child: tile,
+      );
+    }
+
+    return ScaleTransition(scale: entrance, child: tile);
+  }
+
   @override
   void dispose() {
     _stopTimer();
     _confettiController.dispose();
+    _entranceController.dispose();
+    // BGMの切り替えはホーム画面側が行う（disposeは画面遷移アニメーション後に
+    // 呼ばれるため、ここで止めるとタイトルBGMの再開と競合する）
     super.dispose();
   }
 
@@ -221,12 +345,35 @@ class _GameScreenState extends State<GameScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text(
-                  '次: $currentNumber',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      '次: ',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) => ScaleTransition(
+                        scale: CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutBack,
+                        ),
+                        child: child,
+                      ),
+                      child: Text(
+                        '${min(currentNumber, widget.gameMode.maxNumber)}',
+                        key: ValueKey(currentNumber),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Text(
                   'タイム: ${_formatTime()}s',
@@ -246,14 +393,15 @@ class _GameScreenState extends State<GameScreen> {
                 final availableWidth = constraints.maxWidth - 32;
                 final availableHeight = constraints.maxHeight - 32;
 
-                // グリッドサイズに基づいて各セルのサイズを計算
-                final cellSize = (availableWidth / widget.gameMode.gridSize).clamp(
-                  60.0,
-                  (availableHeight / widget.gameMode.gridSize).clamp(60.0, 120.0),
+                // グリッド全体（隙間込み）が収まるセルサイズを計算
+                final cellSize = calcCellSize(
+                  availableWidth: availableWidth,
+                  availableHeight: availableHeight,
+                  gridSize: widget.gameMode.gridSize,
                 );
 
                 // フォントサイズを動的に計算
-                final fontSize = (cellSize * 0.4).clamp(20.0, 48.0);
+                final fontSize = (cellSize * 0.4).clamp(12.0, 48.0);
 
                 return Center(
                   child: Padding(
@@ -270,37 +418,8 @@ class _GameScreenState extends State<GameScreen> {
                           childAspectRatio: 1,
                         ),
                         itemCount: widget.gameMode.maxNumber,
-                        itemBuilder: (context, index) {
-                          final number = numbers[index];
-                          final isTapped = tapped[index];
-                          final isAnimating = animatingNumbers.contains(index);
-
-                          return AnimatedScale(
-                            scale: isAnimating ? 1.2 : 1.0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                            child: Material(
-                              color: isTapped
-                                  ? Colors.grey[300]
-                                  : Theme.of(context).colorScheme.primary,
-                              borderRadius: BorderRadius.circular(8),
-                              child: InkWell(
-                                onTap: isTapped ? null : () => _onNumberTap(index),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Center(
-                                  child: Text(
-                                    isTapped ? '' : number.toString(),
-                                    style: TextStyle(
-                                      fontSize: fontSize,
-                                      fontWeight: FontWeight.bold,
-                                      color: isTapped ? Colors.transparent : Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                        itemBuilder: (context, index) =>
+                            _buildTile(index, fontSize),
                       ),
                     ),
                   ),
