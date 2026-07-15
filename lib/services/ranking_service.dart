@@ -67,10 +67,4 @@ class RankingService {
     final key = _getRankingKey(mode);
     await _prefs.remove(key);
   }
-
-  Future<void> resetAllRankings() async {
-    for (final mode in GameMode.values) {
-      await resetRankings(mode);
-    }
-  }
 }

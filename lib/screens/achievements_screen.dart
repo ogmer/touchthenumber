@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/achievement.dart';
 import '../providers.dart';
+import '../utils/formatting.dart';
 
 class AchievementsScreen extends ConsumerStatefulWidget {
   const AchievementsScreen({super.key});
@@ -52,8 +53,6 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('アチーブメント'),
-        backgroundColor: Colors.purple,
-        foregroundColor: Colors.white,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -117,7 +116,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
             if (isUnlocked && achievement != null) ...[
               const SizedBox(height: 4),
               Text(
-                '達成日時: ${_formatDate(achievement.unlockedAt)}',
+                '達成日時: ${formatDate(achievement.unlockedAt)}',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.green,
@@ -134,7 +133,4 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
-  }
 }

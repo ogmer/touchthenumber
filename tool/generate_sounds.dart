@@ -4,7 +4,9 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-const int sampleRate = 44100;
+// 22.05kHz（ナイキスト11kHz）。このアプリの合成音は最高倍音が約7.3kHzで
+// 十分収まるため、44.1kHzに対して音質をほぼ落とさずファイルサイズを半減できる
+const int sampleRate = 22050;
 
 void main() {
   final outDir = Directory('assets/sounds');
@@ -201,12 +203,12 @@ List<double> _bgmTrack() {
   return buffer;
 }
 
-/// タイトルBGM: プレイ中より落ち着きつつも明るい曲調のループ(96BPM)。
+/// タイトルBGM: プレイ中より落ち着きつつも明るい曲調のループ(108BPM)。
 /// ドラムなしで、パッド和音・2分音符のベース・高めの音域で動く
-/// ヨナ抜き音階のメロディ・小節頭のベルを重ねた4小節（約10秒）。
+/// ヨナ抜き音階のメロディ・小節頭のベルを重ねた4小節（約9秒）。
 /// C→F→G→C の進行なのでループの継ぎ目で気持ちよく解決する
 List<double> _titleBgmTrack() {
-  const bpm = 96.0;
+  const bpm = 108.0;
   const beatSec = 60.0 / bpm;
   const eighthSec = beatSec / 2;
   const barSec = beatSec * 4;

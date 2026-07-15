@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/game_mode.dart';
 import '../providers.dart';
+import '../widgets/sound_toggle_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -22,9 +24,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..forward();
-    // タイトルBGMを開始（Webはオートプレイ制限で失敗することがあるため、
-    // 最初のタップ時にも_ensureTitleBgmで再試行する）
-    ref.read(audioServiceProvider).startTitleBgm();
+    // Webはオートプレイ制限で最初のユーザー操作前に音を鳴らせない。
+    // ここで再生を試みると再生状態だけが「再生中」になり、_ensureTitleBgmの
+    // 再試行がスキップされてしまうため、Webでは最初のタップまで開始を待つ。
+    if (!kIsWeb) {
+      ref.read(audioServiceProvider).startTitleBgm();
+    }
   }
 
   /// Webのオートプレイ制限対策: ユーザー操作をきっかけに未再生なら開始する
@@ -70,12 +75,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // Webのオートプレイ制限対策として、画面のどこか（AppBarのアイコン含む）に
+    // 最初に触れたタイミングでタイトルBGMを開始する
+    return Listener(
+      onPointerDown: (_) => _ensureTitleBgm(),
+      behavior: HitTestBehavior.translucent,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Touch the Number'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
         actions: [
+          const SoundToggleButton(),
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () => context.push('/tutorial'),
@@ -86,12 +95,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
-      body: Listener(
-        // Webのオートプレイ制限で初回のBGM再生が失敗した場合、
-        // 画面のどこかに触れたタイミングで開始する
-        onPointerDown: (_) => _ensureTitleBgm(),
-        behavior: HitTestBehavior.translucent,
-        child: Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -168,7 +172,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ],
         ),
-        ),
+      ),
       ),
     );
   }

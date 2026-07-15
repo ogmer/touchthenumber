@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/game_mode.dart';
 import '../models/statistics.dart';
 import '../providers.dart';
+import '../widgets/reset_confirm_dialog.dart';
 
 class StatisticsScreen extends ConsumerStatefulWidget {
   const StatisticsScreen({super.key});
@@ -35,26 +36,13 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   }
 
   Future<void> _resetStatistics() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('統計情報をリセット'),
-        content: const Text('すべての統計情報をリセットしますか？\nこの操作は取り消せません。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('キャンセル'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('リセット'),
-          ),
-        ],
-      ),
+    final confirmed = await showResetConfirmDialog(
+      context,
+      title: '統計情報をリセット',
+      content: 'すべての統計情報をリセットしますか？\nこの操作は取り消せません。',
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(statisticsServiceProvider).reset();
       await _loadStatistics();
     }
@@ -65,8 +53,6 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('統計情報'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

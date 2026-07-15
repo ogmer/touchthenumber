@@ -7,6 +7,8 @@ import '../models/game_mode.dart';
 import '../models/achievement.dart';
 import '../providers.dart';
 import '../services/audio_service.dart';
+import '../utils/formatting.dart';
+import '../widgets/sound_toggle_button.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   final GameMode gameMode;
@@ -38,7 +40,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
   late List<int> numbers;
   late List<bool> tapped;
   int currentNumber = 1;
-  int elapsedMilliseconds = 0;
+  // 経過時間はValueNotifierで時刻表示だけを局所更新する
+  // （setStateで33msごとにグリッド全体を再ビルドしない）
+  final ValueNotifier<int> _elapsedMs = ValueNotifier(0);
   final Stopwatch _stopwatch = Stopwatch();
   Timer? timer;
   bool isPlaying = false;
@@ -48,6 +52,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
   int shakeCount = 0;
   late ConfettiController _confettiController;
   late AnimationController _entranceController;
+  // タイル登場アニメーションはビルドごとに作らず一度だけ生成して使い回す
+  late final List<CurvedAnimation> _entranceAnimations;
 
   @override
   void initState() {
@@ -58,6 +64,17 @@ class _GameScreenState extends ConsumerState<GameScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
+    _entranceAnimations = List.generate(widget.gameMode.maxNumber, (index) {
+      final gridSize = widget.gameMode.gridSize;
+      final diagonal = (index ~/ gridSize) + (index % gridSize);
+      final maxDiagonal = 2 * (gridSize - 1);
+      final start = maxDiagonal == 0 ? 0.0 : (diagonal / maxDiagonal) * 0.55;
+      return CurvedAnimation(
+        parent: _entranceController,
+        curve: Interval(start, (start + 0.45).clamp(0.0, 1.0),
+            curve: Curves.elasticOut),
+      );
+    });
     _initGame();
   }
 
@@ -68,7 +85,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     animatingNumbers.clear();
     shakingIndex = null;
     currentNumber = 1;
-    elapsedMilliseconds = 0;
+    _elapsedMs.value = 0;
     isPlaying = false;
     _stopwatch.reset();
     // タイルを対角線状に弾ませながら登場させる
@@ -78,16 +95,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void _startTimer() {
     _stopwatch.start();
     timer = Timer.periodic(const Duration(milliseconds: 33), (timer) {
-      setState(() {
-        elapsedMilliseconds = _stopwatch.elapsedMilliseconds;
-      });
+      _elapsedMs.value = _stopwatch.elapsedMilliseconds;
     });
   }
 
   void _stopTimer() {
     timer?.cancel();
     _stopwatch.stop();
-    elapsedMilliseconds = _stopwatch.elapsedMilliseconds;
+    _elapsedMs.value = _stopwatch.elapsedMilliseconds;
   }
 
   void _onNumberTap(int index) {
@@ -130,8 +145,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   Future<void> _finishGame() async {
     _stopTimer();
-    final finalTime = elapsedMilliseconds;
-    setState(() {});
+    final finalTime = _elapsedMs.value;
 
     _confettiController.play();
     await audioService.stopBgm();
@@ -153,12 +167,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
     if (!mounted) return;
     _showCompleteDialog(newAchievements);
+
+    // クリア直後の節目でストアレビューを依頼する（表示判断はOS任せ）
+    ref.read(reviewServiceProvider).maybeRequestReview(stats.overallTotalGames);
   }
 
   void _showCompleteDialog(List<AchievementType> newAchievements) {
-    final seconds = elapsedMilliseconds ~/ 1000;
-    final milliseconds = elapsedMilliseconds % 1000;
-    final timeString = '$seconds.${milliseconds.toString().padLeft(3, '0')}s';
+    final timeString = formatTimeMs(_elapsedMs.value);
 
     showGeneralDialog(
       context: context,
@@ -237,27 +252,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  String _formatTime() {
-    final seconds = elapsedMilliseconds ~/ 1000;
-    final milliseconds = elapsedMilliseconds % 1000;
-    return '$seconds.${milliseconds.toString().padLeft(3, '0')}';
-  }
-
   Widget _buildTile(int index, double fontSize) {
     final number = numbers[index];
     final isTapped = tapped[index];
     final isAnimating = animatingNumbers.contains(index);
-    final gridSize = widget.gameMode.gridSize;
-
-    // 対角線状に順番にポップさせる登場アニメーション
-    final diagonal = (index ~/ gridSize) + (index % gridSize);
-    final maxDiagonal = 2 * (gridSize - 1);
-    final start = maxDiagonal == 0 ? 0.0 : (diagonal / maxDiagonal) * 0.55;
-    final entrance = CurvedAnimation(
-      parent: _entranceController,
-      curve: Interval(start, (start + 0.45).clamp(0.0, 1.0),
-          curve: Curves.elasticOut),
-    );
+    final colorScheme = Theme.of(context).colorScheme;
 
     // 跳ねている最中は「アクティブな見た目」を保ち、跳ね終わってから消す
     final showActive = !isTapped || isAnimating;
@@ -271,15 +270,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
         opacity: isTapped && !isAnimating ? 0.0 : 1.0,
         duration: const Duration(milliseconds: 300),
         child: Material(
-          color: showActive
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
+          color: showActive ? colorScheme.primary : Colors.grey[300],
+          borderRadius: BorderRadius.circular(16),
           elevation: showActive ? 3 : 0,
-          shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+          shadowColor: colorScheme.primary.withValues(alpha: 0.4),
           child: InkWell(
             onTap: isTapped ? null : () => _onNumberTap(index),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Center(
               child: Text(
                 number.toString(),
@@ -314,13 +311,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
       );
     }
 
-    return ScaleTransition(scale: entrance, child: tile);
+    // RepaintBoundaryでタイルごとに再描画を分離する
+    // （1枚のアニメーション中に盤面全体を描き直さない）
+    return RepaintBoundary(
+      child: ScaleTransition(scale: _entranceAnimations[index], child: tile),
+    );
   }
 
   @override
   void dispose() {
     _stopTimer();
+    _elapsedMs.dispose();
     _confettiController.dispose();
+    for (final animation in _entranceAnimations) {
+      animation.dispose();
+    }
     _entranceController.dispose();
     // BGMの切り替えはホーム画面側が行う（disposeは画面遷移アニメーション後に
     // 呼ばれるため、ここで止めるとタイトルBGMの再開と競合する）
@@ -332,58 +337,76 @@ class _GameScreenState extends ConsumerState<GameScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.gameMode.displayName),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
+        actions: const [SoundToggleButton()],
       ),
       body: Stack(
         children: [
           Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey[200],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      '次: ',
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primaryContainer
+                    .withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '次: ',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        transitionBuilder: (child, animation) =>
+                            ScaleTransition(
+                          scale: CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutBack,
+                          ),
+                          child: child,
+                        ),
+                        child: Text(
+                          '${min(currentNumber, widget.gameMode.maxNumber)}',
+                          key: ValueKey(currentNumber),
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // 33msごとの時刻更新はこのTextだけを再ビルドする
+                  ValueListenableBuilder<int>(
+                    valueListenable: _elapsedMs,
+                    builder: (context, elapsed, _) => Text(
+                      'タイム: ${formatTimeMs(elapsed)}',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) => ScaleTransition(
-                        scale: CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeOutBack,
-                        ),
-                        child: child,
-                      ),
-                      child: Text(
-                        '${min(currentNumber, widget.gameMode.maxNumber)}',
-                        key: ValueKey(currentNumber),
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  'タイム: ${_formatTime()}s',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Expanded(

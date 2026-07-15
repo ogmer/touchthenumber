@@ -1,11 +1,10 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/app_theme.dart';
 import 'services/achievement_service.dart';
 import 'services/audio_service.dart';
 import 'services/ranking_service.dart';
+import 'services/review_service.dart';
 import 'services/settings_service.dart';
 import 'services/statistics_service.dart';
 
@@ -31,6 +30,10 @@ final achievementServiceProvider = Provider<AchievementService>(
   (ref) => AchievementService(ref.watch(sharedPreferencesProvider)),
 );
 
+final reviewServiceProvider = Provider<ReviewService>(
+  (ref) => ReviewService(ref.watch(sharedPreferencesProvider)),
+);
+
 final audioServiceProvider = Provider<AudioService>((ref) {
   final service = AudioService(ref.watch(settingsServiceProvider));
   ref.onDispose(service.dispose);
@@ -52,24 +55,33 @@ class ThemeNotifier extends Notifier<AppTheme> {
   }
 }
 
-/// HTTPクライアント。現状このアプリはオフライン完結だが、
-/// オンラインランキング等のAPI連携を追加するときはここを起点にする。
-/// 注意: Android実機で通信する際は AndroidManifest.xml に
-/// INTERNET パーミッションの追加が必要
-final dioProvider = Provider<Dio>((ref) {
-  final dio = Dio(
-    BaseOptions(
-      // baseUrl: 'https://api.example.com', // API導入時に設定する
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
-    ),
-  );
-  if (kDebugMode) {
-    dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true),
-    );
+/// 効果音のオン/オフ。AppBarのボタンと設定画面のスイッチで共有する
+final soundEnabledProvider = NotifierProvider<SoundEnabledNotifier, bool>(
+  SoundEnabledNotifier.new,
+);
+
+class SoundEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsServiceProvider).isSoundEnabled;
+
+  Future<void> set(bool value) async {
+    await ref.read(settingsServiceProvider).setSoundEnabled(value);
+    state = value;
   }
-  ref.onDispose(dio.close);
-  return dio;
-});
+}
+
+/// BGMのオン/オフ。設定画面のスイッチとAppBarのボタンで共有する
+final bgmEnabledProvider = NotifierProvider<BgmEnabledNotifier, bool>(
+  BgmEnabledNotifier.new,
+);
+
+class BgmEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsServiceProvider).isBgmEnabled;
+
+  Future<void> set(bool value) async {
+    await ref.read(settingsServiceProvider).setBgmEnabled(value);
+    state = value;
+  }
+}
+

@@ -28,15 +28,59 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(themeProvider);
+    final appTheme = ref.watch(themeProvider);
+    final colorScheme = appTheme.colorScheme;
 
     return MaterialApp.router(
       title: 'Touch the Number',
       theme: ThemeData(
-        colorScheme: theme.colorScheme,
+        colorScheme: colorScheme,
         useMaterial3: true,
         // 日本語グリフを持つ同梱フォントを全体の既定にする（Web版の文字化け対策）
         fontFamily: 'MPLUSRounded1c',
+        // 丸ゴシックに合わせた、丸く柔らかいデザインで全画面を統一する
+        scaffoldBackgroundColor: colorScheme.surfaceContainerLow,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.transparent,
+          foregroundColor: colorScheme.primary,
+          elevation: 0,
+          centerTitle: true,
+          titleTextStyle: TextStyle(
+            fontFamily: 'MPLUSRounded1c',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.primary,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            shape: const StadiumBorder(),
+            elevation: 3,
+            shadowColor: colorScheme.primary.withValues(alpha: 0.35),
+            textStyle: const TextStyle(
+              fontFamily: 'MPLUSRounded1c',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        cardTheme: CardThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 2,
+          shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
+        ),
+        dialogTheme: DialogThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+        ),
+        snackBarTheme: SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
       ),
       routerConfig: ref.watch(routerProvider),
     );

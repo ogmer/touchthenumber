@@ -50,8 +50,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('遊び方'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
       ),
       body: Column(
         children: [

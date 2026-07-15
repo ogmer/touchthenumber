@@ -1,11 +1,11 @@
 {
-    "name": "touchthenumber",
-    "short_name": "touchthenumber",
+    "name": "Touch the Number - 数字タッチで脳トレ タイムアタック",
+    "short_name": "Touch the Number",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "1から順に数字をタップしてタイムを競う無料の脳トレゲーム。反射神経と動体視力のトレーニングに。ランキング・実績・3段階の難易度つき。",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

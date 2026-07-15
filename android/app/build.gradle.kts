@@ -20,8 +20,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.touchthenumber"
+        // ストア公開にはcom.example以外の一意なIDが必須。
+        // 独自ドメインを持っている場合はそれに合わせて変更すること
+        applicationId = "io.github.ogmer.touchthenumber"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

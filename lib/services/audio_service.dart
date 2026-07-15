@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'settings_service.dart';
 
@@ -45,6 +46,10 @@ class AudioService {
     await HapticFeedback.mediumImpact();
   }
 
+  // ミュート解除時に「直前に流していたBGM」を再開するために覚えておく
+  String? _lastBgmAsset;
+  double _lastBgmVolume = 0.4;
+
   /// プレイ中BGM（アップテンポ）
   Future<void> startGameBgm() =>
       _startBgm('sounds/bgm.wav', volume: 0.4);
@@ -54,14 +59,26 @@ class AudioService {
       _startBgm('sounds/bgm_title.wav', volume: 0.35);
 
   Future<void> _startBgm(String assetPath, {required double volume}) async {
+    // BGMがオフでも「次にどの曲を流すべきか」は記録しておく
+    _lastBgmAsset = assetPath;
+    _lastBgmVolume = volume;
     if (!_settingsService.isBgmEnabled) return;
     try {
-      await _bgmPlayer.stop();
-      await _bgmPlayer.setVolume(volume);
-      await _bgmPlayer.play(AssetSource(assetPath));
+      // play()はsetSource→resumeをまとめて行い、既存の曲があれば切り替える。
+      // stop/setVolumeを個別にawaitするとWebでトラック切り替えに失敗する
+      // ことがあるため、音量指定ごと1回のplay()で開始する
+      await _bgmPlayer.play(AssetSource(assetPath), volume: volume);
     } catch (e) {
       // 音声デバイスが使えない環境では無音で続行する
+      debugPrint('BGM再生に失敗: $assetPath / $e');
     }
+  }
+
+  /// ミュート解除時などに、直前に流していたBGMを再開する
+  Future<void> resumeBgm() async {
+    final asset = _lastBgmAsset;
+    if (asset == null) return;
+    await _startBgm(asset, volume: _lastBgmVolume);
   }
 
   /// BGMが再生中かどうか（Webのオートプレイ制限で開始に失敗した場合の再試行判定用）

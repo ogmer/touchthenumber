@@ -1,3 +1,5 @@
+import '../utils/formatting.dart';
+
 class RankingEntry {
   final int timeInMilliseconds;
   final DateTime date;
@@ -7,11 +9,7 @@ class RankingEntry {
     required this.date,
   });
 
-  String get formattedTime {
-    final seconds = timeInMilliseconds ~/ 1000;
-    final milliseconds = timeInMilliseconds % 1000;
-    return '$seconds.${milliseconds.toString().padLeft(3, '0')}s';
-  }
+  String get formattedTime => formatTimeMs(timeInMilliseconds);
 
   Map<String, dynamic> toJson() {
     return {

@@ -1,3 +1,4 @@
+import '../utils/formatting.dart';
 import 'game_mode.dart';
 
 class Statistics {
@@ -42,12 +43,8 @@ class Statistics {
     return (totalTime[mode] ?? 0) ~/ games;
   }
 
-  String formatTime(int milliseconds) {
-    if (milliseconds == 0) return '-';
-    final seconds = milliseconds ~/ 1000;
-    final ms = milliseconds % 1000;
-    return '$seconds.${ms.toString().padLeft(3, '0')}s';
-  }
+  String formatTime(int milliseconds) =>
+      milliseconds == 0 ? '-' : formatTimeMs(milliseconds);
 
   Map<String, dynamic> toJson() {
     return {
