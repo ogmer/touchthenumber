@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:confetti/confetti.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/enum_translations.dart';
 import '../models/game_mode.dart';
 import '../models/achievement.dart';
 import '../providers.dart';
@@ -173,6 +175,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   void _showCompleteDialog(List<AchievementType> newAchievements) {
+    final l10n = AppLocalizations.of(context)!;
     final timeString = formatTimeMs(_elapsedMs.value);
 
     showGeneralDialog(
@@ -192,17 +195,17 @@ class _GameScreenState extends ConsumerState<GameScreen>
         );
       },
       pageBuilder: (context, animation, secondaryAnimation) => AlertDialog(
-        title: const Text('クリア！'),
+        title: Text(l10n.clearTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('タイム: $timeString'),
+            Text(l10n.timeLabel(timeString)),
             if (newAchievements.isNotEmpty) ...[
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 8),
-              const Text(
-                '🏆 新しいアチーブメント！',
+              Text(
+                l10n.newAchievements,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -219,7 +222,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          type.title,
+                          type.title(l10n),
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -238,14 +241,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 _initGame();
               });
             },
-            child: const Text('もう一度'),
+            child: Text(l10n.playAgain),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('ホームに戻る'),
+            child: Text(l10n.backToHome),
           ),
         ],
       ),
@@ -361,7 +364,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '次: ',
+                        AppLocalizations.of(context)!.nextLabel,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -397,7 +400,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   ValueListenableBuilder<int>(
                     valueListenable: _elapsedMs,
                     builder: (context, elapsed, _) => Text(
-                      'タイム: ${formatTimeMs(elapsed)}',
+                      AppLocalizations.of(context)!
+                          .timeLabel(formatTimeMs(elapsed)),
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

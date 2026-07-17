@@ -5,6 +5,7 @@ class SettingsService {
   static const String _soundEnabledKey = 'sound_enabled';
   static const String _bgmEnabledKey = 'bgm_enabled';
   static const String _themeKey = 'app_theme';
+  static const String _localeKey = 'locale_code';
 
   final SharedPreferences _prefs;
 
@@ -34,5 +35,16 @@ class SettingsService {
 
   Future<void> setTheme(AppTheme theme) async {
     await _prefs.setString(_themeKey, theme.name);
+  }
+
+  /// 言語コード（'ja'/'en'）。nullはシステム設定に従う
+  String? get localeCode => _prefs.getString(_localeKey);
+
+  Future<void> setLocaleCode(String? code) async {
+    if (code == null) {
+      await _prefs.remove(_localeKey);
+    } else {
+      await _prefs.setString(_localeKey, code);
+    }
   }
 }

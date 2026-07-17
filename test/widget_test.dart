@@ -24,8 +24,36 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await _pumpApp(tester);
 
+    // テスト環境の既定ロケールは英語
     expect(find.text('Touch the Number'), findsOneWidget);
+    expect(find.text('Select Game Mode'), findsOneWidget);
+  });
+
+  testWidgets('Locale setting switches UI language',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({'locale_code': 'ja'});
+    await _pumpApp(tester);
+
     expect(find.text('ゲームモードを選択'), findsOneWidget);
+  });
+
+  testWidgets('All supported locales render the home screen',
+      (WidgetTester tester) async {
+    const expectations = {
+      'zh': '选择游戏模式',
+      'ko': '게임 모드 선택',
+      'es': 'Elige el modo de juego',
+      'fr': 'Choisissez un mode de jeu',
+    };
+
+    for (final entry in expectations.entries) {
+      SharedPreferences.setMockInitialValues({'locale_code': entry.key});
+      await _pumpApp(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text(entry.value), findsOneWidget,
+          reason: 'locale ${entry.key}');
+    }
   });
 
   testWidgets('Master mute button toggles both sound and BGM', (tester) async {

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
 enum AppTheme {
-  blue('ブルー', Colors.blue),
-  green('グリーン', Colors.green),
-  purple('パープル', Colors.purple),
-  orange('オレンジ', Colors.orange),
-  red('レッド', Colors.red),
-  pink('ピンク', Colors.pink),
-  teal('ティール', Colors.teal),
-  indigo('インディゴ', Colors.indigo);
+  blue(Colors.blue),
+  green(Colors.green),
+  purple(Colors.purple),
+  orange(Colors.orange),
+  red(Colors.red),
+  pink(Colors.pink),
+  teal(Colors.teal),
+  indigo(Colors.indigo);
 
-  final String displayName;
+  // 表示名は多言語対応のため lib/l10n/enum_translations.dart で解決する
   final Color color;
 
-  const AppTheme(this.displayName, this.color);
+  const AppTheme(this.color);
 
   ColorScheme get colorScheme => ColorScheme.fromSeed(seedColor: color);
 }

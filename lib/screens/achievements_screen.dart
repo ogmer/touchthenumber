@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/enum_translations.dart';
 import '../models/achievement.dart';
 import '../providers.dart';
 import '../utils/formatting.dart';
@@ -50,9 +52,10 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('アチーブメント'),
+        title: Text(l10n.achievements),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -60,7 +63,10 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  '達成: ${unlockedAchievements.length}/${AchievementType.values.length}',
+                  l10n.achievementProgress(
+                    unlockedAchievements.length,
+                    AchievementType.values.length,
+                  ),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -69,14 +75,14 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
                 ),
                 const SizedBox(height: 16),
                 ...AchievementType.values.map(
-                  (type) => _buildAchievementCard(type),
+                  (type) => _buildAchievementCard(l10n, type),
                 ),
               ],
             ),
     );
   }
 
-  Widget _buildAchievementCard(AchievementType type) {
+  Widget _buildAchievementCard(AppLocalizations l10n, AchievementType type) {
     final isUnlocked = _isUnlocked(type);
     final achievement = _getAchievement(type);
 
@@ -98,7 +104,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
           ),
         ),
         title: Text(
-          type.title,
+          type.title(l10n),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: isUnlocked ? Colors.black : Colors.grey,
@@ -108,7 +114,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              type.description,
+              type.description(l10n),
               style: TextStyle(
                 color: isUnlocked ? Colors.black87 : Colors.grey,
               ),
@@ -116,7 +122,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
             if (isUnlocked && achievement != null) ...[
               const SizedBox(height: 4),
               Text(
-                '達成日時: ${formatDate(achievement.unlockedAt)}',
+                l10n.unlockedAt(formatDate(achievement.unlockedAt)),
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.green,

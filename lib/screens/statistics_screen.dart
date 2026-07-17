@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/game_mode.dart';
+import '../l10n/app_localizations.dart';
 import '../models/statistics.dart';
 import '../providers.dart';
 import '../widgets/reset_confirm_dialog.dart';
@@ -36,10 +37,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   }
 
   Future<void> _resetStatistics() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showResetConfirmDialog(
       context,
-      title: '統計情報をリセット',
-      content: 'すべての統計情報をリセットしますか？\nこの操作は取り消せません。',
+      title: l10n.resetStatsTitle,
+      content: l10n.resetStatsMessage,
     );
 
     if (confirmed && mounted) {
@@ -50,9 +52,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('統計情報'),
+        title: Text(l10n.statistics),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -63,24 +66,25 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : statistics == null
-              ? const Center(child: Text('データがありません'))
+              ? Center(child: Text(l10n.noData))
               : SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildOverallStats(),
+                        _buildOverallStats(l10n),
                         const SizedBox(height: 24),
-                        const Text(
-                          '難易度別統計',
-                          style: TextStyle(
+                        Text(
+                          l10n.statsByDifficulty,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ...GameMode.values.map((mode) => _buildModeStats(mode)),
+                        ...GameMode.values
+                            .map((mode) => _buildModeStats(l10n, mode)),
                       ],
                     ),
                   ),
@@ -88,7 +92,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     );
   }
 
-  Widget _buildOverallStats() {
+  Widget _buildOverallStats(AppLocalizations l10n) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -96,21 +100,21 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '全体統計',
-              style: TextStyle(
+            Text(
+              l10n.overallStats,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
             _buildStatRow(
-              '総プレイ回数',
-              '${statistics!.overallTotalGames}回',
+              l10n.totalPlays,
+              l10n.timesCount(statistics!.overallTotalGames),
               Icons.videogame_asset,
             ),
             _buildStatRow(
-              '総プレイ時間',
+              l10n.totalPlayTime,
               statistics!.formatTime(statistics!.overallTotalTime),
               Icons.timer,
             ),
@@ -120,7 +124,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     );
   }
 
-  Widget _buildModeStats(GameMode mode) {
+  Widget _buildModeStats(AppLocalizations l10n, GameMode mode) {
     final games = statistics!.totalGames[mode] ?? 0;
     final bestTime = statistics!.bestTime[mode] ?? 0;
     final avgTime = statistics!.getAverageTime(mode);
@@ -141,14 +145,18 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildStatRow('プレイ回数', '$games回', Icons.play_arrow),
             _buildStatRow(
-              'ベストタイム',
+              l10n.playCount,
+              l10n.timesCount(games),
+              Icons.play_arrow,
+            ),
+            _buildStatRow(
+              l10n.bestTime,
               statistics!.formatTime(bestTime),
               Icons.star,
             ),
             _buildStatRow(
-              '平均タイム',
+              l10n.averageTime,
               statistics!.formatTime(avgTime),
               Icons.trending_up,
             ),

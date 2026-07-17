@@ -1,3 +1,4 @@
+import 'dart:ui' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/app_theme.dart';
@@ -52,6 +53,24 @@ class ThemeNotifier extends Notifier<AppTheme> {
   Future<void> setTheme(AppTheme theme) async {
     await ref.read(settingsServiceProvider).setTheme(theme);
     state = theme;
+  }
+}
+
+/// 表示言語。nullはシステム設定に従う
+final localeProvider = NotifierProvider<LocaleNotifier, Locale?>(
+  LocaleNotifier.new,
+);
+
+class LocaleNotifier extends Notifier<Locale?> {
+  @override
+  Locale? build() {
+    final code = ref.watch(settingsServiceProvider).localeCode;
+    return code == null ? null : Locale(code);
+  }
+
+  Future<void> set(String? code) async {
+    await ref.read(settingsServiceProvider).setLocaleCode(code);
+    state = code == null ? null : Locale(code);
   }
 }
 

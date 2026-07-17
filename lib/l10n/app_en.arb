@@ -1,0 +1,124 @@
+{
+  "@@locale": "en",
+  "appTitle": "Touch the Number",
+  "selectGameMode": "Select Game Mode",
+  "ranking": "Ranking",
+  "statistics": "Statistics",
+  "achievements": "Achievements",
+  "howToPlay": "How to Play",
+  "settings": "Settings",
+
+  "nextLabel": "Next: ",
+  "timeLabel": "Time: {time}",
+  "@timeLabel": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "clearTitle": "Clear!",
+  "newAchievements": "🏆 New Achievements!",
+  "playAgain": "Play Again",
+  "backToHome": "Back to Home",
+
+  "noRecordsYet": "No records yet",
+  "resetRankingTitle": "Reset {mode} Ranking",
+  "@resetRankingTitle": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "resetRankingMessage": "Reset all rankings for this mode?\nThis cannot be undone.",
+  "shareRecord": "Share record",
+  "copiedToClipboard": "Record copied to clipboard",
+  "shareRecordText": "[Touch the Number] I scored {time} in {mode} mode! (Rank #{rank})\nTap the numbers from 1 in order in this brain-training time attack. Give it a try!\n#TouchTheNumber",
+  "@shareRecordText": {
+    "placeholders": {
+      "mode": { "type": "String" },
+      "time": { "type": "String" },
+      "rank": { "type": "int" }
+    }
+  },
+
+  "cancel": "Cancel",
+  "reset": "Reset",
+
+  "overallStats": "Overall Stats",
+  "totalPlays": "Total Plays",
+  "totalPlayTime": "Total Play Time",
+  "statsByDifficulty": "Stats by Difficulty",
+  "playCount": "Plays",
+  "bestTime": "Best Time",
+  "averageTime": "Average Time",
+  "timesCount": "{count} times",
+  "@timesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noData": "No data",
+  "resetStatsTitle": "Reset Statistics",
+  "resetStatsMessage": "Reset all statistics?\nThis cannot be undone.",
+
+  "achievementProgress": "Unlocked: {unlocked}/{total}",
+  "@achievementProgress": {
+    "placeholders": {
+      "unlocked": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "unlockedAt": "Unlocked: {date}",
+  "@unlockedAt": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "achFirstWinTitle": "First Victory",
+  "achFirstWinDesc": "Clear the game for the first time",
+  "achSpeed10Title": "Speed Star",
+  "achSpeed10Desc": "Clear within 10 seconds",
+  "achSpeed20Title": "Speed Master",
+  "achSpeed20Desc": "Clear within 20 seconds",
+  "achGames10Title": "Gamer",
+  "achGames10Desc": "Play 10 times",
+  "achGames50Title": "Veteran",
+  "achGames50Desc": "Play 50 times",
+  "achGames100Title": "Legend",
+  "achGames100Desc": "Play 100 times",
+  "achAllModesTitle": "All-Rounder",
+  "achAllModesDesc": "Clear every mode",
+  "achPerfectDayTitle": "Perfect Day",
+  "achPerfectDayDesc": "Clear 10 times in one day",
+
+  "themeColor": "Theme Color",
+  "themeBlue": "Blue",
+  "themeGreen": "Green",
+  "themePurple": "Purple",
+  "themeOrange": "Orange",
+  "themeRed": "Red",
+  "themePink": "Pink",
+  "themeTeal": "Teal",
+  "themeIndigo": "Indigo",
+  "sound": "Sound",
+  "soundSubtitle": "Sound effects and vibration",
+  "bgm": "BGM",
+  "bgmSubtitle": "Title and in-game music",
+  "language": "Language",
+  "languageSystem": "System default",
+
+  "tutGoalTitle": "Goal",
+  "tutGoalDesc": "Tap the numbers in order, starting from 1.\nTap them all in the correct order to clear the board!",
+  "tutTimeTitle": "Race the Clock",
+  "tutTimeDesc": "Aim to clear as fast as you can.\nYour time is recorded down to the millisecond.",
+  "tutRankingTitle": "Ranking",
+  "tutRankingDesc": "Your top 10 times are saved for each difficulty.\nKeep challenging your personal best!",
+  "tutAchievementsTitle": "Achievements",
+  "tutAchievementsDesc": "Complete specific goals to unlock achievements.\nCollect them all!",
+  "tutCustomizeTitle": "Customize",
+  "tutCustomizeDesc": "Change the theme color in Settings.\nPlay in your favorite color!",
+  "back": "Back",
+  "next": "Next",
+  "done": "Done",
+
+  "muteTooltip": "Mute sounds",
+  "unmuteTooltip": "Unmute sounds"
+}

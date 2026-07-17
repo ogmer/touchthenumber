@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 class TutorialScreen extends StatefulWidget {
   const TutorialScreen({super.key});
@@ -11,33 +12,33 @@ class _TutorialScreenState extends State<TutorialScreen> {
   int currentPage = 0;
   final PageController _pageController = PageController();
 
-  final List<TutorialPage> pages = const [
-    TutorialPage(
-      icon: Icons.touch_app,
-      title: 'ゲームの目的',
-      description: '1から順番に数字をタップしていきます。\nすべての数字を正しい順番でタップすればクリアです！',
-    ),
-    TutorialPage(
-      icon: Icons.timer,
-      title: 'タイムを競おう',
-      description: 'できるだけ早くクリアすることを目指しましょう。\nタイムはミリ秒単位で記録されます。',
-    ),
-    TutorialPage(
-      icon: Icons.emoji_events,
-      title: 'ランキング',
-      description: '各難易度のベスト10タイムが記録されます。\n自己ベストを目指して何度も挑戦しましょう！',
-    ),
-    TutorialPage(
-      icon: Icons.military_tech,
-      title: 'アチーブメント',
-      description: '特定の条件を達成するとアチーブメントが解除されます。\nすべてのアチーブメントを集めましょう！',
-    ),
-    TutorialPage(
-      icon: Icons.palette,
-      title: 'カスタマイズ',
-      description: '設定画面からテーマカラーを変更できます。\nお好みの色でプレイしましょう！',
-    ),
-  ];
+  List<TutorialPage> _buildPages(AppLocalizations l10n) => [
+        TutorialPage(
+          icon: Icons.touch_app,
+          title: l10n.tutGoalTitle,
+          description: l10n.tutGoalDesc,
+        ),
+        TutorialPage(
+          icon: Icons.timer,
+          title: l10n.tutTimeTitle,
+          description: l10n.tutTimeDesc,
+        ),
+        TutorialPage(
+          icon: Icons.emoji_events,
+          title: l10n.tutRankingTitle,
+          description: l10n.tutRankingDesc,
+        ),
+        TutorialPage(
+          icon: Icons.military_tech,
+          title: l10n.tutAchievementsTitle,
+          description: l10n.tutAchievementsDesc,
+        ),
+        TutorialPage(
+          icon: Icons.palette,
+          title: l10n.tutCustomizeTitle,
+          description: l10n.tutCustomizeDesc,
+        ),
+      ];
 
   @override
   void dispose() {
@@ -47,9 +48,11 @@ class _TutorialScreenState extends State<TutorialScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pages = _buildPages(l10n);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('遊び方'),
+        title: Text(l10n.howToPlay),
       ),
       body: Column(
         children: [
@@ -80,7 +83,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                         curve: Curves.easeInOut,
                       );
                     },
-                    child: const Text('戻る'),
+                    child: Text(l10n.back),
                   )
                 else
                   const SizedBox(width: 80),
@@ -108,12 +111,12 @@ class _TutorialScreenState extends State<TutorialScreen> {
                         curve: Curves.easeInOut,
                       );
                     },
-                    child: const Text('次へ'),
+                    child: Text(l10n.next),
                   )
                 else
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('完了'),
+                    child: Text(l10n.done),
                   ),
               ],
             ),

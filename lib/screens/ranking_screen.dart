@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import '../l10n/app_localizations.dart';
 import '../models/game_mode.dart';
 import '../models/ranking_entry.dart';
 import '../providers.dart';
@@ -42,10 +43,11 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   }
 
   Future<void> _resetRankings() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showResetConfirmDialog(
       context,
-      title: '${selectedMode.displayName}のランキングをリセット',
-      content: 'このモードのすべてのランキングをリセットしますか？\nこの操作は取り消せません。',
+      title: l10n.resetRankingTitle(selectedMode.displayName),
+      content: l10n.resetRankingMessage,
     );
 
     if (confirmed && mounted) {
@@ -58,7 +60,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ランキング'),
+        title: Text(AppLocalizations.of(context)!.ranking),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -100,10 +102,10 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : rankings.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
-                          'まだ記録がありません',
-                          style: TextStyle(fontSize: 18),
+                          AppLocalizations.of(context)!.noRecordsYet,
+                          style: const TextStyle(fontSize: 18),
                         ),
                       )
                     : ListView.builder(
@@ -139,7 +141,8 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
                               ),
                               trailing: IconButton(
                                 icon: const Icon(Icons.share),
-                                tooltip: '記録を共有',
+                                tooltip:
+                                    AppLocalizations.of(context)!.shareRecord,
                                 onPressed: () =>
                                     _shareRecord(index + 1, ranking),
                               ),
@@ -157,6 +160,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   /// 共有非対応の環境（一部ブラウザ・デスクトップ）ではクリップボードにコピーする
   Future<void> _shareRecord(int rank, RankingEntry entry) async {
     final text = buildRecordShareText(
+      l10n: AppLocalizations.of(context)!,
       mode: selectedMode,
       rank: rank,
       entry: entry,
@@ -176,7 +180,9 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('記録をクリップボードにコピーしました')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.copiedToClipboard),
+        ),
       );
     }
   }

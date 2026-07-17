@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../l10n/app_localizations.dart';
 import '../models/game_mode.dart';
 import '../providers.dart';
 import '../widgets/sound_toggle_button.dart';
@@ -75,6 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Webのオートプレイ制限対策として、画面のどこか（AppBarのアイコン含む）に
     // 最初に触れたタイミングでタイトルBGMを開始する
     return Listener(
@@ -82,7 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       behavior: HitTestBehavior.translucent,
       child: Scaffold(
       appBar: AppBar(
-        title: const Text('Touch the Number'),
+        title: Text(l10n.appTitle),
         actions: [
           const SoundToggleButton(),
           IconButton(
@@ -102,9 +104,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             _popIn(
               0,
               7,
-              const Text(
-                'ゲームモードを選択',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                l10n.selectGameMode,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 40),
@@ -132,7 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ElevatedButton.icon(
                 onPressed: () => context.push('/ranking'),
                 icon: const Icon(Icons.emoji_events),
-                label: const Text('ランキング'),
+                label: Text(l10n.ranking),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(200, 50),
                   backgroundColor: Colors.orange,
@@ -147,7 +150,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ElevatedButton.icon(
                 onPressed: () => context.push('/statistics'),
                 icon: const Icon(Icons.bar_chart),
-                label: const Text('統計情報'),
+                label: Text(l10n.statistics),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(200, 50),
                   backgroundColor: Colors.green,
@@ -162,7 +165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ElevatedButton.icon(
                 onPressed: () => context.push('/achievements'),
                 icon: const Icon(Icons.military_tech),
-                label: const Text('アチーブメント'),
+                label: Text(l10n.achievements),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(200, 50),
                   backgroundColor: Colors.purple,

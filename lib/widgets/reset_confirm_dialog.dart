@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// 「リセットしますか？」の確認ダイアログを表示する。
 /// ランキング・統計画面で重複していた実装の共通化。
@@ -8,6 +9,7 @@ Future<bool> showResetConfirmDialog(
   required String title,
   required String content,
 }) async {
+  final l10n = AppLocalizations.of(context)!;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -16,12 +18,12 @@ Future<bool> showResetConfirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('キャンセル'),
+          child: Text(l10n.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
           style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: const Text('リセット'),
+          child: Text(l10n.reset),
         ),
       ],
     ),

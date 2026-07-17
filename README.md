@@ -27,6 +27,38 @@ py -m pip install fonttools brotli   # 初回のみ
 py tool/subset_font.py
 ```
 
+## ビルド高速化
+
+### 設定済み（リポジトリ内）
+
+- Gradle並列ビルド・ビルドキャッシュ有効、Jetifier無効（`android/gradle.properties`）
+
+### 環境側の推奨設定（効果大）
+
+1. **プロジェクトをOneDrive外・ASCIIパスへ移動する**（例: `C:\dev\touchthenumber`）
+   - OneDrive配下ではビルドごとに `build/`・`.dart_tool/` の数千ファイルが
+     同期対象になり、ビルドが大幅に遅くなる
+   - パスに日本語（`ドキュメント`）が含まれると **Androidビルドが失敗し、
+     Webリリースビルドもシェーダーコンパイラが落ちる**既知の問題があり、
+     移動すれば両方とも解決する
+
+2. **Windows Defenderの除外設定**（管理者PowerShellで実行）
+
+   ```powershell
+   Add-MpPreference -ExclusionPath "C:\dev\touchthenumber"   # プロジェクト
+   Add-MpPreference -ExclusionPath "C:\src\flutter"          # Flutter SDK
+   Add-MpPreference -ExclusionPath "$env:USERPROFILE\.gradle" # Gradleキャッシュ
+   Add-MpPreference -ExclusionProcess "dart.exe"
+   Add-MpPreference -ExclusionProcess "java.exe"
+   ```
+
+### 開発ループのコツ
+
+- 起動し直さず **ホットリロード** を使う: `flutter run` 実行中に `r`（リロード）/
+  `R`（再起動）。コード変更の反映が数十秒→1秒前後になる
+- Webのリリースビルドは `--no-wasm-dry-run` を付けるとWasm互換チェックの
+  コンパイル1回分が省ける
+
 ## リリースビルド（サイズ最適化）
 
 アプリサイズを抑えるため、以下のオプションでビルドすること。

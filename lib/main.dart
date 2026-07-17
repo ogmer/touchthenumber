@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'l10n/app_localizations.dart';
 import 'providers.dart';
 import 'router.dart';
 // 条件付きインポート: Web版とデスクトップ版で異なる実装を使用
@@ -33,6 +34,10 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Touch the Number',
+      // 多言語対応: 端末のシステム言語に追従し、設定画面から手動切替も可能
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: ref.watch(localeProvider),
       theme: ThemeData(
         colorScheme: colorScheme,
         useMaterial3: true,

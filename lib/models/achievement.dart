@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 
 enum AchievementType {
-  firstWin('初勝利', '初めてゲームをクリア', Icons.celebration),
-  speed10('スピードスター', '10秒以内にクリア', Icons.flash_on),
-  speed20('スピードマスター', '20秒以内にクリア', Icons.speed),
-  games10('ゲーマー', '10回プレイ', Icons.videogame_asset),
-  games50('ベテラン', '50回プレイ', Icons.emoji_events),
-  games100('レジェンド', '100回プレイ', Icons.stars),
-  allModes('万能プレイヤー', 'すべてのモードでクリア', Icons.check_circle),
-  perfectDay('パーフェクトデイ', '1日に10回クリア', Icons.wb_sunny);
+  firstWin(Icons.celebration),
+  speed10(Icons.flash_on),
+  speed20(Icons.speed),
+  games10(Icons.videogame_asset),
+  games50(Icons.emoji_events),
+  games100(Icons.stars),
+  allModes(Icons.check_circle),
+  perfectDay(Icons.wb_sunny);
 
-  final String title;
-  final String description;
+  // 表示名・説明は多言語対応のため lib/l10n/enum_translations.dart で解決する
   final IconData icon;
 
-  const AchievementType(this.title, this.description, this.icon);
+  const AchievementType(this.icon);
 }
 
 class Achievement {
