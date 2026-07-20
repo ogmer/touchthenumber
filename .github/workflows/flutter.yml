@@ -18,7 +18,7 @@ jobs:
     steps:
     # リポジトリのコードをチェックアウト
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
     
     # fvmのバージョンを取得
     - name: "Read flutter version from fvm config"
@@ -70,7 +70,7 @@ jobs:
 
     # ビルドしたapkをgithub Actionsアップロード
     - name: "Deploy apk 🚀"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: release-apk  # アーティファクトの名前
         path: build/app/outputs/flutter-apk/app-release.apk
