@@ -6,7 +6,7 @@ import 'providers.dart';
 import 'router.dart';
 // 条件付きインポート: Web版とデスクトップ版で異なる実装を使用
 import 'window_setup_stub.dart'
-    if (dart.library.io) 'window_setup_desktop.dart';
+    if (dart.library.io) 'window_setup_io.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

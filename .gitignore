@@ -5,6 +5,7 @@
 *.swp
 .DS_Store
 .atom/
+.apk
 .build/
 .buildlog/
 .history

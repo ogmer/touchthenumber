@@ -2,12 +2,14 @@
 使い方: py tool/generate_icons.py  (要: py -m pip install pillow)
 
 生成物:
-  assets/icon/app_icon.png   1024x1024 マスターアイコン（flutter_launcher_iconsの入力）
-  store/icon_512.png         Google Play ストア掲載用アイコン
-  store/feature_graphic.png  Google Play フィーチャーグラフィック (1024x500)
+  assets/icon/app_icon.png         1024x1024 マスターアイコン（Android/iOS 用、全面塗り）
+  assets/icon/app_icon_rounded.png 1024x1024 角丸版（Web/Windows 用）
+  store/icon_512.png               Google Play ストア掲載用アイコン
+  store/feature_graphic.png        Google Play フィーチャーグラフィック (1024x500)
 
 デザイン: ゲーム画面と同じ「丸角の数字タイル」モチーフ。
-角丸はストア/OS側で自動適用されるため、マスターは全面塗りで出力する。
+Android/iOS は OS 側で角丸が適用されるためマスターは全面塗り。
+Web/Windows は app_icon_rounded.png で角を透過させる。
 """
 import os
 import urllib.request
@@ -66,14 +68,12 @@ def draw_centered_text(draw, center, text, font, fill):
               text, font=font, fill=fill)
 
 
-def render_icon(size=1024):
-    """数字タイル2x2のアイコンを描く"""
-    s = size * SS
-    img = vertical_gradient((s, s), BG_TOP, BG_BOTTOM).convert("RGBA")
+def draw_number_tiles(img, tile_frac):
+    """2x2の数字タイルを img に描く。tile_fracはタイル一辺の画像比"""
+    s = img.width
     draw = ImageDraw.Draw(img, "RGBA")
-
-    tile = round(s * 0.30)          # タイル一辺
-    gap = round(s * 0.045)          # タイル間隔
+    tile = round(s * tile_frac)
+    gap = round(tile * 0.15)
     radius = round(tile * 0.22)
     shadow_offset = round(s * 0.012)
     grid = tile * 2 + gap
@@ -93,7 +93,37 @@ def render_icon(size=1024):
         draw_centered_text(draw, (x0 + tile / 2, y0 + tile / 2),
                            num, font, num_color)
 
+
+def render_icon(size=1024, tile_frac=0.30, transparent=False):
+    """数字タイル2x2のアイコンを描く。
+    transparent=True で背景なし（Android adaptive iconの前景用）"""
+    s = size * SS
+    if transparent:
+        img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    else:
+        img = vertical_gradient((s, s), BG_TOP, BG_BOTTOM).convert("RGBA")
+    draw_number_tiles(img, tile_frac)
     return img.resize((size, size), Image.LANCZOS)
+
+
+def render_background(size=1024):
+    """Android adaptive iconの背景用グラデーション（タイルなし）"""
+    s = size * SS
+    return vertical_gradient((s, s), BG_TOP, BG_BOTTOM).resize(
+        (size, size), Image.LANCZOS)
+
+
+def round_corners(img, radius_frac=0.225):
+    """一般的なアプリアイコンの角丸（角を透過）にする。Web/Windows用"""
+    size = img.width
+    big = size * 4
+    mask = Image.new("L", (big, big), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, big - 1, big - 1), radius=round(big * radius_frac), fill=255)
+    mask = mask.resize((size, size), Image.LANCZOS)
+    out = img.convert("RGBA")
+    out.putalpha(mask)
+    return out
 
 
 def render_feature_graphic(w=1024, h=500):
@@ -140,12 +170,14 @@ def main():
 
     icon = render_icon(1024)
     icon.save(os.path.join(icon_dir, "app_icon.png"))
+    round_corners(icon).save(os.path.join(icon_dir, "app_icon_rounded.png"))
     icon.resize((512, 512), Image.LANCZOS).save(
         os.path.join(store_dir, "icon_512.png"))
     render_feature_graphic().save(
         os.path.join(store_dir, "feature_graphic.png"))
 
     print("generated: assets/icon/app_icon.png, "
+          "assets/icon/app_icon_rounded.png, "
           "store/icon_512.png, store/feature_graphic.png")
 
 
