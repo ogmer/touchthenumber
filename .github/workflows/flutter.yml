@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest  # ジョブが実行される仮想環境を指定
     steps:
       - name: Checkout  # リポジトリのコードをチェックアウト
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         
       - name: Flutter setting  # Flutterのセットアップ
         uses: subosito/flutter-action@v2
@@ -28,11 +28,12 @@ jobs:
         run: |
           flutter pub get
           flutter test
+          flutter build apk --release
           flutter build web
 
       ## ビルドしたapkをgithub Actionsアップロード(デプロイ)    
       - name: "Deploy"
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
