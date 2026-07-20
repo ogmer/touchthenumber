@@ -3,6 +3,25 @@
 ストアコンソールに入力する掲載文のドラフト。検索ボリュームの見込める
 「脳トレ」「反射神経」「数字」「タッチ」「タイムアタック」を軸に構成している。
 
+## 画像素材（生成済み）
+
+| ファイル | 用途 |
+|---|---|
+| `store/icon_512.png` | Google Play ストア掲載アイコン (512x512) |
+| `store/feature_graphic.png` | Google Play フィーチャーグラフィック (1024x500) |
+| `assets/icon/app_icon.png` | マスターアイコン (1024x1024)。App Store 用アイコンにもそのまま使える |
+
+アプリ本体のアイコン（Android / iOS / Web / Windows）は生成・適用済み。
+デザインを変えたいときは `tool/generate_icons.py` を編集して:
+
+```sh
+py tool/generate_icons.py
+dart run flutter_launcher_icons
+```
+
+スクリーンショットは実機/エミュレータでゲーム画面（グリッド）・クリア演出
+（紙吹雪）・ランキングを撮影して用意すること（1枚目が最重要）。
+
 ## アプリ名（Google Play: 30文字 / App Store: 30文字）
 
 ```
@@ -53,6 +72,66 @@ App Store サブタイトル:
 
 ```
 脳トレ,数字,タッチ,反射神経,動体視力,タイムアタック,集中力,無料,ゲーム,シュルテ,暇つぶし,トレーニング
+```
+
+---
+
+# English Listing（英語ストア掲載文）
+
+アプリ本体が6言語対応になったため、まず英語の掲載文を用意する。
+（ストアの「翻訳を追加」から en-US として登録する）
+
+## App Name (30 chars)
+
+```
+Touch the Number - Tap & Focus
+```
+
+## Short Description (Google Play: 80 chars) / Subtitle (App Store: 30 chars)
+
+Google Play:
+```
+Tap numbers in order as fast as you can! A simple brain-training time attack.
+```
+
+App Store subtitle:
+```
+Tap numbers in order. Fast!
+```
+
+## Full Description
+
+```
+Touch the Number is a simple yet addictive brain-training game:
+tap the scattered numbers in order, starting from 1, as fast as you can.
+
+■ Easy to play
+Just tap 1 → 2 → 3... in order. Tap them all to clear the board!
+Your time is recorded down to the millisecond.
+
+■ Features
+- 3 difficulty levels (5x5 / 6x6 / 7x7)
+- Best-time ranking (top 10 per difficulty)
+- Statistics: play count, best and average times
+- Achievements to unlock
+- 8 theme colors
+- Cheerful sound effects and BGM (one-tap mute)
+- Free and fully playable offline
+- Available in 16 languages (EN, JA, ZH-Hans/Hant, KO, ES, FR, DE, IT, PT, RU, AR, HI, ID, TH, VI)
+
+■ Great for
+- Quick play sessions in your spare time
+- Training reflexes and visual attention
+- Warming up your focus before work or study
+- Competing with friends and family
+
+Beat your personal best and sharpen your reflexes today!
+```
+
+## Keywords (App Store, 100 chars)
+
+```
+brain,training,numbers,tap,reflex,speed,time attack,focus,schulte,puzzle,free,concentration
 ```
 
 ---

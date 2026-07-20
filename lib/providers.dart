@@ -63,15 +63,32 @@ final localeProvider = NotifierProvider<LocaleNotifier, Locale?>(
 
 class LocaleNotifier extends Notifier<Locale?> {
   @override
-  Locale? build() {
-    final code = ref.watch(settingsServiceProvider).localeCode;
-    return code == null ? null : Locale(code);
-  }
+  Locale? build() =>
+      localeFromCode(ref.watch(settingsServiceProvider).localeCode);
 
   Future<void> set(String? code) async {
     await ref.read(settingsServiceProvider).setLocaleCode(code);
-    state = code == null ? null : Locale(code);
+    state = localeFromCode(code);
   }
+}
+
+/// 'ja' や 'zh_Hant'（スクリプトコード付き）の文字列をLocaleに変換する
+Locale? localeFromCode(String? code) {
+  if (code == null) return null;
+  final parts = code.split('_');
+  if (parts.length == 2) {
+    return Locale.fromSubtags(languageCode: parts[0], scriptCode: parts[1]);
+  }
+  return Locale(parts[0]);
+}
+
+/// Localeを設定保存用の文字列コードに戻す（localeFromCodeの逆変換）
+String? codeFromLocale(Locale? locale) {
+  if (locale == null) return null;
+  final script = locale.scriptCode;
+  return script == null
+      ? locale.languageCode
+      : '${locale.languageCode}_$script';
 }
 
 /// 効果音のオン/オフ。AppBarのボタンと設定画面のスイッチで共有する

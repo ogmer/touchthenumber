@@ -41,9 +41,19 @@ void main() {
       (WidgetTester tester) async {
     const expectations = {
       'zh': '选择游戏模式',
+      'zh_Hant': '選擇遊戲模式',
       'ko': '게임 모드 선택',
       'es': 'Elige el modo de juego',
       'fr': 'Choisissez un mode de jeu',
+      'de': 'Spielmodus wählen',
+      'it': 'Scegli la modalità di gioco',
+      'pt': 'Escolha o modo de jogo',
+      'ru': 'Выберите режим игры',
+      'ar': 'اختر وضع اللعب',
+      'hi': 'गेम मोड चुनें',
+      'id': 'Pilih mode permainan',
+      'th': 'เลือกโหมดเกม',
+      'vi': 'Chọn chế độ chơi',
     };
 
     for (final entry in expectations.entries) {

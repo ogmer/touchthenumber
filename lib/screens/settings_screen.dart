@@ -19,7 +19,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final currentTheme = ref.watch(themeProvider);
     final soundOn = ref.watch(soundEnabledProvider);
     final bgmOn = ref.watch(bgmEnabledProvider);
-    final localeCode = ref.watch(localeProvider)?.languageCode;
+    final localeCode = codeFromLocale(ref.watch(localeProvider));
 
     return Scaffold(
       appBar: AppBar(
@@ -98,9 +98,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             (code: 'ja', label: '日本語'),
             (code: 'en', label: 'English'),
             (code: 'zh', label: '简体中文'),
+            (code: 'zh_Hant', label: '繁體中文'),
             (code: 'ko', label: '한국어'),
             (code: 'es', label: 'Español'),
             (code: 'fr', label: 'Français'),
+            (code: 'de', label: 'Deutsch'),
+            (code: 'it', label: 'Italiano'),
+            (code: 'pt', label: 'Português'),
+            (code: 'ru', label: 'Русский'),
+            (code: 'ar', label: 'العربية'),
+            (code: 'hi', label: 'हिन्दी'),
+            (code: 'id', label: 'Bahasa Indonesia'),
+            (code: 'th', label: 'ไทย'),
+            (code: 'vi', label: 'Tiếng Việt'),
           ].map(
             (option) => _buildLanguageTile(
               label: option.label,
