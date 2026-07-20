@@ -1,39 +1,112 @@
+# name: Flutter CI/CD
+
+# # ワークフローをトリガーするイベントを定義
+# 'on':
+#   push:
+#     branches:
+#       - main  # mainブランチへのpush時に実行
+#   pull_request:
+#     branches:
+#       - main  # mainブランチへのPR作成時に実行
+
+# # ワークフロー内のジョブを定義
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest  # ジョブが実行される仮想環境を指定
+#     steps:
+#       - name: Checkout  # リポジトリのコードをチェックアウト
+#         uses: actions/checkout@v4
+        
+#       - name: Flutter setting  # Flutterのセットアップ
+#         uses: subosito/flutter-action@v2
+#         with:
+#           channel: stable  #安定板
+#           cache: true
+
+#       #インストール＆ビルド    
+#       - name: "Install and Build" 
+#         run: |
+#           flutter pub get
+#           flutter test
+#           flutter build apk --release
+
+#       ## ビルドしたapkをgithub Actionsアップロード(デプロイ)    
+#       - name: "Deploy"
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: release-apk
+#           path: build/app/outputs/flutter-apk/app-release.apk
+
+
 name: Flutter CI/CD
 
-# ワークフローをトリガーするイベントを定義
-'on':
+on:
   push:
     branches:
-      - main  # mainブランチへのpush時に実行
+      - main
   pull_request:
     branches:
-      - main  # mainブランチへのPR作成時に実行
+      - main
 
-# ワークフロー内のジョブを定義
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest  # ジョブが実行される仮想環境を指定
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
-      - name: Checkout  # リポジトリのコードをチェックアウト
+      # ソースコードを取得
+      - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Flutter setting  # Flutterのセットアップ
+
+      # Java (Androidビルド用)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Flutterセットアップ
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable  #安定板
+          channel: stable
           cache: true
 
-      #インストール＆ビルド    
-      - name: "Install and Build" 
-        run: |
-          flutter pub get
-          flutter test
-          flutter build apk --release
+      # Pubパッケージをキャッシュ
+      - name: Cache Pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
-      ## ビルドしたapkをgithub Actionsアップロード(デプロイ)    
-      - name: "Deploy"
+      # Gradleキャッシュ
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # 依存関係取得
+      - name: Get dependencies
+        run: flutter pub get
+
+      # テスト
+      - name: Run tests
+        run: flutter test
+
+      # APKビルド（Push時のみ）
+      - name: Build APK
+        if: github.event_name == 'push'
+        run: flutter build apk --release
+
+      # APKアップロード
+      - name: Upload APK
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-          
+          retention-days: 30
