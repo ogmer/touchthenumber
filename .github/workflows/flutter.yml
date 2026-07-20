@@ -29,7 +29,6 @@ jobs:
           flutter pub get
           flutter test
           flutter build apk --release
-          flutter build web
 
       ## ビルドしたapkをgithub Actionsアップロード(デプロイ)    
       - name: "Deploy"
