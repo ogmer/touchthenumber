@@ -95,8 +95,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _elapsedMs.value = 0;
     isPlaying = false;
     _stopwatch.reset();
-    // タイルを対角線状に弾ませながら登場させる
-    _entranceController.forward(from: 0);
+    // カウントダウン中はタイルをフルサイズ(value=1)で不可視に描画し、影の
+    // ラスタライズを先に済ませておく（下の build 参照）。登場の弾みアニメーション
+    // 自体はカウントダウン終了時（_beginPlay）に 0 から開始する
+    _entranceController.value = 1;
   }
 
   /// 「準備OK？」→3→2→1→「スタート」の順で表示し、終わったらゲームを開始する。
@@ -117,6 +119,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   void _beginPlay() {
     isPlaying = true;
+    // カウントダウンが終わってからタイルを対角線状に弾ませながら登場させる
+    _entranceController.forward(from: 0);
     _startTimer();
     audioService.startGameBgm();
   }
@@ -287,7 +291,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final showActive = !isTapped || isAnimating;
 
     // タップ後: 一瞬拡大してからふわっと消える。
-    // 未タップは浮き上がったアクセント色の面、タップ済みは凹んだ淡色の面にする
+    // 未タップは浮き上がったアクセント色の面。タップ済みは opacity で消えるので、
+    // 見えない影(inset blur)を描き続けないよう flat にして描画コストを抑える
+    // （blur=MaskFilter は重く、消えたタイルが積み上がると処理落ちの原因になる）
     Widget tile = AnimatedScale(
       scale: isAnimating ? 1.25 : 1.0,
       duration: const Duration(milliseconds: 300),
@@ -305,7 +311,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
             color: showActive ? colorScheme.primary : null,
             style: showActive
                 ? NeumorphicStyle.raised
-                : NeumorphicStyle.pressed,
+                : NeumorphicStyle.flat,
             child: Center(
               child: Text(
                 number.toString(),
@@ -457,17 +463,26 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     child: SizedBox(
                       width: cellSize * widget.gameMode.gridSize + 8 * (widget.gameMode.gridSize - 1),
                       height: cellSize * widget.gameMode.gridSize + 8 * (widget.gameMode.gridSize - 1),
-                      child: GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: widget.gameMode.gridSize,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                          childAspectRatio: 1,
+                      // カウントダウン中もタイルを「ほぼ透明」で描画しておくことで、
+                      // 影のラスタライズを事前に済ませ、「スタート」時のカクつきを防ぐ。
+                      // opacity を完全な 0 にすると描画自体がスキップされ事前ウォーム
+                      // アップにならないため、視認できない極小値にする（上にカウント
+                      // ダウンの暗幕が重なるので数字は見えない）
+                      child: Opacity(
+                        opacity: _countdownStep == null ? 1.0 : 0.004,
+                        child: GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: widget.gameMode.gridSize,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 1,
+                          ),
+                          itemCount: widget.gameMode.maxNumber,
+                          itemBuilder: (context, index) =>
+                              _buildTile(index, fontSize),
                         ),
-                        itemCount: widget.gameMode.maxNumber,
-                        itemBuilder: (context, index) =>
-                            _buildTile(index, fontSize),
                       ),
                     ),
                   ),

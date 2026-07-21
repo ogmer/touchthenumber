@@ -17,9 +17,30 @@ class AudioService {
       player.setReleaseMode(ReleaseMode.stop);
     }
     _bgmPlayer.setReleaseMode(ReleaseMode.loop);
-    // 初回再生時のデコード待ちで発生するカクつき・無音落ちを防ぐため、
-    // 起動時に全音源をあらかじめキャッシュに読み込んでおく
-    _preloadAssets();
+    _init();
+  }
+
+  Future<void> _init() async {
+    // オーディオコンテキストの設定を先に済ませてから音源を読み込む
+    await _configureAudioContext();
+    await _preloadAssets();
+  }
+
+  /// 効果音を鳴らすたびにBGMが止まる問題への対策。
+  /// 既定(focus: gain)では各プレイヤーが再生時にオーディオフォーカスを奪い合い、
+  /// 効果音プレイヤーがフォーカスを取るとBGMプレイヤーが停止させられてしまう。
+  /// mixWithOthers にすると Android はフォーカス要求をせず、iOS は他とミックスするため、
+  /// アプリ内の効果音とBGMが共存できる。
+  Future<void> _configureAudioContext() async {
+    try {
+      await AudioPlayer.global.setAudioContext(
+        AudioContextConfig(
+          focus: AudioContextConfigFocus.mixWithOthers,
+        ).build(),
+      );
+    } catch (e) {
+      // 設定に対応しない環境では既定のまま続行する
+    }
   }
 
   Future<void> _preloadAssets() async {

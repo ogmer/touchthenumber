@@ -148,36 +148,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   7,
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: NeumorphicButton(
-                      onPressed: () => _startGame(entry.$2),
-                      accent: true,
-                      borderRadius: 24,
-                      depth: 7,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minWidth: 160),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
+                    // ボタンにはモード名だけを載せ、難易度ラベルはボタンの外・右横に置く
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        NeumorphicButton(
+                          onPressed: () => _startGame(entry.$2),
+                          accent: true,
+                          borderRadius: 24,
+                          depth: 7,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 16),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 120),
+                            child: Text(
                               entry.$2.displayName,
+                              textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 20),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              entry.$2.difficultyLabel(l10n),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 16),
+                        Text(
+                          entry.$2.difficultyLabel(l10n),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 )),
