@@ -58,8 +58,9 @@ class AudioService {
         'sounds/correct.wav',
         'sounds/error.wav',
         'sounds/complete.wav',
-        'sounds/bgm.wav',
-        'sounds/bgm_title.wav',
+        // BGMはサイズ削減のためMP3圧縮している（効果音は短いのでWAVのまま）
+        'sounds/bgm.mp3',
+        'sounds/bgm_title.mp3',
       ]);
     } catch (e) {
       // プリロード失敗時も、再生時に通常どおり読み込まれるので無視してよい
@@ -99,11 +100,11 @@ class AudioService {
 
   /// プレイ中BGM（アップテンポ）
   Future<void> startGameBgm() =>
-      _startBgm('sounds/bgm.wav', volume: 0.4);
+      _startBgm('sounds/bgm.mp3', volume: 0.4);
 
   /// タイトル・メニューBGM（落ち着いた曲調）
   Future<void> startTitleBgm() =>
-      _startBgm('sounds/bgm_title.wav', volume: 0.35);
+      _startBgm('sounds/bgm_title.mp3', volume: 0.35);
 
   Future<void> _startBgm(String assetPath, {required double volume}) async {
     // BGMがオフでも「次にどの曲を流すべきか」は記録しておく

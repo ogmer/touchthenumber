@@ -7,6 +7,23 @@
   "difficultyHard": "Advanced",
   "countdownReady": "Ready?",
   "countdownGo": "Go!",
+  "newBestRecord": "New Best!",
+  "behindBest": "{time} off your best",
+  "@behindBest": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "rankLabel": "Rank #{rank}",
+  "@rankLabel": {
+    "placeholders": {
+      "rank": { "type": "int" }
+    }
+  },
+  "rankingLocalTab": "Local",
+  "rankingOnlineTab": "Online",
+  "nickname": "Nickname",
+  "onlineUnavailable": "Online ranking is unavailable",
   "ranking": "Ranking",
   "statistics": "Statistics",
   "achievements": "Achievements",

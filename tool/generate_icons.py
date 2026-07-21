@@ -2,13 +2,17 @@
 使い方: py tool/generate_icons.py  (要: py -m pip install pillow)
 
 生成物:
-  assets/icon/app_icon.png         1024x1024 マスターアイコン（Android/iOS 用、全面塗り）
-  assets/icon/app_icon_rounded.png 1024x1024 角丸版（Web/Windows 用）
-  store/icon_512.png               Google Play ストア掲載用アイコン
-  store/feature_graphic.png        Google Play フィーチャーグラフィック (1024x500)
+  assets/icon/app_icon.png            1024x1024 マスターアイコン（iOS・レガシー用、全面塗り）
+  assets/icon/app_icon_rounded.png    1024x1024 角丸版（Web/Windows 用）
+  assets/icon/app_icon_foreground.png 1024x1024 Android アダプティブ前景（数字タイルのみ・透過）
+  assets/icon/app_icon_background.png 1024x1024 Android アダプティブ背景（グラデーションのみ）
+  store/icon_512.png                  Google Play ストア掲載用アイコン
+  store/feature_graphic.png           Google Play フィーチャーグラフィック (1024x500)
 
 デザイン: ゲーム画面と同じ「丸角の数字タイル」モチーフ。
-Android/iOS は OS 側で角丸が適用されるためマスターは全面塗り。
+Android はアダプティブアイコン（前景＋背景）にしているため、端末やユーザー設定の
+マスク（円・角丸・スクワークル等）に追従して形が変わる（形は固定しない）。
+iOS は OS 側で角丸が適用されるためマスターは全面塗り。
 Web/Windows は app_icon_rounded.png で角を透過させる。
 """
 import os
@@ -171,6 +175,15 @@ def main():
     icon = render_icon(1024)
     icon.save(os.path.join(icon_dir, "app_icon.png"))
     round_corners(icon).save(os.path.join(icon_dir, "app_icon_rounded.png"))
+    # Android アダプティブアイコン用の2レイヤー。
+    # 前景=数字タイルのみ（透過）。端末が外周を削るため、タイルを少し小さめ
+    # （tile_frac=0.27）にしてセーフゾーンに収める。
+    # 背景=グラデーションのみ。これで端末/ユーザー設定のマスク（円・角丸・
+    # スクワークル等）に追従して形が変わる（固定しない）。
+    render_icon(1024, tile_frac=0.27, transparent=True).save(
+        os.path.join(icon_dir, "app_icon_foreground.png"))
+    render_background(1024).save(
+        os.path.join(icon_dir, "app_icon_background.png"))
     icon.resize((512, 512), Image.LANCZOS).save(
         os.path.join(store_dir, "icon_512.png"))
     render_feature_graphic().save(
@@ -178,6 +191,8 @@ def main():
 
     print("generated: assets/icon/app_icon.png, "
           "assets/icon/app_icon_rounded.png, "
+          "assets/icon/app_icon_foreground.png, "
+          "assets/icon/app_icon_background.png, "
           "store/icon_512.png, store/feature_graphic.png")
 
 

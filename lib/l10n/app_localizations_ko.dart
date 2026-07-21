@@ -30,6 +30,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get countdownGo => '시작!';
 
   @override
+  String get newBestRecord => '최고 기록 경신!';
+
+  @override
+  String behindBest(String time) {
+    return '최고 기록까지 $time';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return '$rank위';
+  }
+
+  @override
+  String get rankingLocalTab => '로컬';
+
+  @override
+  String get rankingOnlineTab => '온라인';
+
+  @override
+  String get nickname => '닉네임';
+
+  @override
+  String get onlineUnavailable => '온라인 랭킹을 사용할 수 없습니다';
+
+  @override
   String get ranking => '랭킹';
 
   @override

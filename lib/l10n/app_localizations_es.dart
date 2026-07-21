@@ -30,6 +30,31 @@ class AppLocalizationsEs extends AppLocalizations {
   String get countdownGo => '¡Ya!';
 
   @override
+  String get newBestRecord => '¡Nuevo récord!';
+
+  @override
+  String behindBest(String time) {
+    return 'a $time de tu récord';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return 'Puesto #$rank';
+  }
+
+  @override
+  String get rankingLocalTab => 'Local';
+
+  @override
+  String get rankingOnlineTab => 'En línea';
+
+  @override
+  String get nickname => 'Apodo';
+
+  @override
+  String get onlineUnavailable => 'Clasificación en línea no disponible';
+
+  @override
   String get ranking => 'Clasificación';
 
   @override

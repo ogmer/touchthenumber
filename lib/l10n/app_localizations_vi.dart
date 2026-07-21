@@ -30,6 +30,31 @@ class AppLocalizationsVi extends AppLocalizations {
   String get countdownGo => 'Bắt đầu!';
 
   @override
+  String get newBestRecord => 'Kỷ lục mới!';
+
+  @override
+  String behindBest(String time) {
+    return 'cách kỷ lục $time';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return 'Hạng #$rank';
+  }
+
+  @override
+  String get rankingLocalTab => 'Cục bộ';
+
+  @override
+  String get rankingOnlineTab => 'Trực tuyến';
+
+  @override
+  String get nickname => 'Biệt danh';
+
+  @override
+  String get onlineUnavailable => 'Bảng xếp hạng trực tuyến không khả dụng';
+
+  @override
   String get ranking => 'Bảng xếp hạng';
 
   @override

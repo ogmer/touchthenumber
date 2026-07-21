@@ -30,6 +30,31 @@ class AppLocalizationsId extends AppLocalizations {
   String get countdownGo => 'Mulai!';
 
   @override
+  String get newBestRecord => 'Rekor baru!';
+
+  @override
+  String behindBest(String time) {
+    return '$time dari rekormu';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return 'Peringkat #$rank';
+  }
+
+  @override
+  String get rankingLocalTab => 'Lokal';
+
+  @override
+  String get rankingOnlineTab => 'Online';
+
+  @override
+  String get nickname => 'Nama panggilan';
+
+  @override
+  String get onlineUnavailable => 'Peringkat online tidak tersedia';
+
+  @override
   String get ranking => 'Peringkat';
 
   @override

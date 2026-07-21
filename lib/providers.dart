@@ -1,9 +1,12 @@
 import 'dart:ui' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/supabase_config.dart';
 import 'models/app_theme.dart';
 import 'services/achievement_service.dart';
 import 'services/audio_service.dart';
+import 'services/online_ranking_service.dart';
 import 'services/ranking_service.dart';
 import 'services/review_service.dart';
 import 'services/settings_service.dart';
@@ -40,6 +43,33 @@ final audioServiceProvider = Provider<AudioService>((ref) {
   ref.onDispose(service.dispose);
   return service;
 });
+
+/// オンラインランキング。SupabaseのURL/anonKeyが未設定なら null（機能オフ）。
+/// null のときは呼び出し側でオンラインUIを出さない・投稿しない。
+final onlineRankingServiceProvider = Provider<OnlineRankingService?>((ref) {
+  if (!SupabaseConfig.isConfigured) return null;
+  return OnlineRankingService(Supabase.instance.client);
+});
+
+/// オンライン機能が使えるか（設定済みか）。UIの出し分けに使う。
+final onlineEnabledProvider = Provider<bool>(
+  (ref) => ref.watch(onlineRankingServiceProvider) != null,
+);
+
+/// オンラインランキング表示名。AppBar等の状態と共有する。
+final playerNameProvider = NotifierProvider<PlayerNameNotifier, String>(
+  PlayerNameNotifier.new,
+);
+
+class PlayerNameNotifier extends Notifier<String> {
+  @override
+  String build() => ref.watch(settingsServiceProvider).playerName;
+
+  Future<void> set(String name) async {
+    await ref.read(settingsServiceProvider).setPlayerName(name);
+    state = name.trim();
+  }
+}
 
 /// テーマ変更をアプリ全体に反映するための状態
 final themeProvider = NotifierProvider<ThemeNotifier, AppTheme>(

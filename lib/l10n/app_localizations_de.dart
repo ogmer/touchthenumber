@@ -30,6 +30,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get countdownGo => 'Los!';
 
   @override
+  String get newBestRecord => 'Neuer Rekord!';
+
+  @override
+  String behindBest(String time) {
+    return '$time vom Rekord entfernt';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return 'Rang #$rank';
+  }
+
+  @override
+  String get rankingLocalTab => 'Lokal';
+
+  @override
+  String get rankingOnlineTab => 'Online';
+
+  @override
+  String get nickname => 'Spitzname';
+
+  @override
+  String get onlineUnavailable => 'Online-Rangliste nicht verfügbar';
+
+  @override
   String get ranking => 'Rangliste';
 
   @override

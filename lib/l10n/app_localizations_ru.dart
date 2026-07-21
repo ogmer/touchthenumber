@@ -30,6 +30,31 @@ class AppLocalizationsRu extends AppLocalizations {
   String get countdownGo => 'Старт!';
 
   @override
+  String get newBestRecord => 'Новый рекорд!';
+
+  @override
+  String behindBest(String time) {
+    return 'до рекорда $time';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return '$rank-е место';
+  }
+
+  @override
+  String get rankingLocalTab => 'Локально';
+
+  @override
+  String get rankingOnlineTab => 'Онлайн';
+
+  @override
+  String get nickname => 'Никнейм';
+
+  @override
+  String get onlineUnavailable => 'Онлайн-рейтинг недоступен';
+
+  @override
   String get ranking => 'Рейтинг';
 
   @override

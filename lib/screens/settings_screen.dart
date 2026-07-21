@@ -34,6 +34,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     (code: 'vi', label: 'Tiếng Việt'),
   ];
 
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: ref.read(playerNameProvider));
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -41,6 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final soundOn = ref.watch(soundEnabledProvider);
     final bgmOn = ref.watch(bgmEnabledProvider);
     final localeCode = codeFromLocale(ref.watch(localeProvider));
+    final onlineEnabled = ref.watch(onlineEnabledProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -125,6 +140,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           const Divider(),
+          // オンラインランキング用のニックネーム（Supabase設定時のみ表示）
+          if (onlineEnabled) ...[
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                l10n.nickname,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: NeumorphicContainer(
+                style: NeumorphicStyle.pressed,
+                borderRadius: 16,
+                depth: 5,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextField(
+                  controller: _nameController,
+                  maxLength: 20,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    counterText: '',
+                    hintText: l10n.nickname,
+                  ),
+                  onChanged: (value) =>
+                      ref.read(playerNameProvider.notifier).set(value),
+                ),
+              ),
+            ),
+            const Divider(),
+          ],
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(

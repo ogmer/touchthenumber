@@ -30,6 +30,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get countdownGo => 'スタート';
 
   @override
+  String get newBestRecord => '自己ベスト更新！';
+
+  @override
+  String behindBest(String time) {
+    return 'ベストまであと $time';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return '第$rank位';
+  }
+
+  @override
+  String get rankingLocalTab => 'ローカル';
+
+  @override
+  String get rankingOnlineTab => 'オンライン';
+
+  @override
+  String get nickname => 'ニックネーム';
+
+  @override
+  String get onlineUnavailable => 'オンラインランキングは利用できません';
+
+  @override
   String get ranking => 'ランキング';
 
   @override

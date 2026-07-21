@@ -6,6 +6,7 @@ class SettingsService {
   static const String _bgmEnabledKey = 'bgm_enabled';
   static const String _themeKey = 'app_theme';
   static const String _localeKey = 'locale_code';
+  static const String _playerNameKey = 'player_name';
 
   final SharedPreferences _prefs;
 
@@ -46,5 +47,12 @@ class SettingsService {
     } else {
       await _prefs.setString(_localeKey, code);
     }
+  }
+
+  /// オンラインランキングに表示するニックネーム（未設定は空文字）
+  String get playerName => _prefs.getString(_playerNameKey) ?? '';
+
+  Future<void> setPlayerName(String name) async {
+    await _prefs.setString(_playerNameKey, name.trim());
   }
 }

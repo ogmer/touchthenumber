@@ -167,6 +167,48 @@ abstract class AppLocalizations {
   /// **'Go!'**
   String get countdownGo;
 
+  /// No description provided for @newBestRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'New Best!'**
+  String get newBestRecord;
+
+  /// No description provided for @behindBest.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} off your best'**
+  String behindBest(String time);
+
+  /// No description provided for @rankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank #{rank}'**
+  String rankLabel(int rank);
+
+  /// No description provided for @rankingLocalTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get rankingLocalTab;
+
+  /// No description provided for @rankingOnlineTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get rankingOnlineTab;
+
+  /// No description provided for @nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname'**
+  String get nickname;
+
+  /// No description provided for @onlineUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Online ranking is unavailable'**
+  String get onlineUnavailable;
+
   /// No description provided for @ranking.
   ///
   /// In en, this message translates to:

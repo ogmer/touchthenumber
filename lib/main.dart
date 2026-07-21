@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/supabase_config.dart';
 import 'l10n/app_localizations.dart';
 import 'providers.dart';
 import 'router.dart';
@@ -14,6 +16,20 @@ void main() async {
 
   // プラットフォームに応じたウィンドウ設定
   await setupWindow();
+
+  // オンラインランキング用のSupabase初期化。URL/anonKeyが未設定なら
+  // 何もしない（オンライン機能オフでローカルのみ動作）。失敗してもアプリは続行。
+  if (SupabaseConfig.isConfigured) {
+    try {
+      await Supabase.initialize(
+        url: SupabaseConfig.url,
+        // anon key（旧）でも publishable key（新）でもこのパラメータに渡せる
+        publishableKey: SupabaseConfig.anonKey,
+      );
+    } catch (e) {
+      debugPrint('Supabase初期化に失敗（オンライン機能はオフ）: $e');
+    }
+  }
 
   final prefs = await SharedPreferences.getInstance();
 

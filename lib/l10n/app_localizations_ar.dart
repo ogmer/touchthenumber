@@ -30,6 +30,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get countdownGo => 'ابدأ';
 
   @override
+  String get newBestRecord => 'أفضل رقم جديد!';
+
+  @override
+  String behindBest(String time) {
+    return 'على بعد $time من أفضل رقم';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return 'المركز #$rank';
+  }
+
+  @override
+  String get rankingLocalTab => 'محلي';
+
+  @override
+  String get rankingOnlineTab => 'متصل';
+
+  @override
+  String get nickname => 'الاسم المستعار';
+
+  @override
+  String get onlineUnavailable => 'الترتيب عبر الإنترنت غير متاح';
+
+  @override
   String get ranking => 'التصنيف';
 
   @override

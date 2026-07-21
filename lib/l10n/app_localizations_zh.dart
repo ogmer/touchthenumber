@@ -30,6 +30,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get countdownGo => '开始！';
 
   @override
+  String get newBestRecord => '刷新最佳！';
+
+  @override
+  String behindBest(String time) {
+    return '距离最佳还差 $time';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return '第$rank名';
+  }
+
+  @override
+  String get rankingLocalTab => '本地';
+
+  @override
+  String get rankingOnlineTab => '在线';
+
+  @override
+  String get nickname => '昵称';
+
+  @override
+  String get onlineUnavailable => '在线排行榜不可用';
+
+  @override
   String get ranking => '排行榜';
 
   @override
@@ -300,6 +325,31 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get countdownGo => '開始！';
+
+  @override
+  String get newBestRecord => '刷新最佳！';
+
+  @override
+  String behindBest(String time) {
+    return '距離最佳還差 $time';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return '第$rank名';
+  }
+
+  @override
+  String get rankingLocalTab => '本機';
+
+  @override
+  String get rankingOnlineTab => '線上';
+
+  @override
+  String get nickname => '暱稱';
+
+  @override
+  String get onlineUnavailable => '線上排行榜無法使用';
 
   @override
   String get ranking => '排行榜';

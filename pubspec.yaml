@@ -22,6 +22,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
+  supabase_flutter: ^2.16.0
 
 dev_dependencies:
   flutter_test:

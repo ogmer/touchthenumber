@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../l10n/app_localizations.dart';
 import '../models/game_mode.dart';
+import '../models/online_ranking_entry.dart';
 import '../models/ranking_entry.dart';
 import '../providers.dart';
 import '../utils/formatting.dart';
@@ -20,27 +21,61 @@ class RankingScreen extends ConsumerStatefulWidget {
 
 class _RankingScreenState extends ConsumerState<RankingScreen> {
   GameMode selectedMode = GameMode.easy;
+
+  // ローカルランキング
   List<RankingEntry> rankings = [];
   bool isLoading = true;
+
+  // オンライン（今日の）ランキング
+  List<OnlineRankingEntry> onlineEntries = [];
+  bool onlineLoading = false;
+  bool onlineError = false;
 
   @override
   void initState() {
     super.initState();
     _loadRankings();
+    if (ref.read(onlineEnabledProvider)) _loadOnline();
   }
 
   Future<void> _loadRankings() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    final loadedRankings =
+    setState(() => isLoading = true);
+    final loaded =
         await ref.read(rankingServiceProvider).getRankings(selectedMode);
-
+    if (!mounted) return;
     setState(() {
-      rankings = loadedRankings;
+      rankings = loaded;
       isLoading = false;
     });
+  }
+
+  Future<void> _loadOnline() async {
+    final service = ref.read(onlineRankingServiceProvider);
+    if (service == null) return;
+    setState(() {
+      onlineLoading = true;
+      onlineError = false;
+    });
+    try {
+      final entries = await service.getDailyRankings(selectedMode);
+      if (!mounted) return;
+      setState(() {
+        onlineEntries = entries;
+        onlineLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        onlineError = true;
+        onlineLoading = false;
+      });
+    }
+  }
+
+  void _selectMode(GameMode mode) {
+    setState(() => selectedMode = mode);
+    _loadRankings();
+    if (ref.read(onlineEnabledProvider)) _loadOnline();
   }
 
   Future<void> _resetRankings() async {
@@ -59,106 +94,191 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.ranking),
-        actions: [
-          NeumorphicIconButton(
-            icon: Icons.delete_outline,
-            onPressed: _resetRankings,
-          ),
-          const SizedBox(width: 12),
-        ],
+    final l10n = AppLocalizations.of(context)!;
+    final onlineEnabled = ref.watch(onlineEnabledProvider);
+
+    final modeSelector = Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: GameMode.values.map((mode) {
+          final isSelected = mode == selectedMode;
+          return NeumorphicButton(
+            onPressed: () => _selectMode(mode),
+            accent: isSelected,
+            depth: isSelected ? 3 : 5,
+            borderRadius: 16,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            child: Text(mode.displayName),
+          );
+        }).toList(),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
+    );
+
+    final actions = [
+      NeumorphicIconButton(
+        icon: Icons.delete_outline,
+        onPressed: _resetRankings,
+      ),
+      const SizedBox(width: 12),
+    ];
+
+    // オンライン未設定なら従来どおりローカルのみ（タブなし）
+    if (!onlineEnabled) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.ranking), actions: actions),
+        body: Column(
+          children: [modeSelector, Expanded(child: _buildLocalList(l10n))],
+        ),
+      );
+    }
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.ranking),
+          actions: actions,
+          bottom: TabBar(
+            tabs: [
+              Tab(text: l10n.rankingLocalTab),
+              Tab(text: l10n.rankingOnlineTab),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            modeSelector,
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _buildLocalList(l10n),
+                  _buildOnlineList(l10n),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocalList(AppLocalizations l10n) {
+    if (isLoading) return const Center(child: CircularProgressIndicator());
+    if (rankings.isEmpty) {
+      return Center(
+        child: Text(l10n.noRecordsYet, style: const TextStyle(fontSize: 18)),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: rankings.length,
+      itemBuilder: (context, index) {
+        final ranking = rankings[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: NeumorphicContainer(
+            borderRadius: 20,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: GameMode.values.map((mode) {
-                final isSelected = mode == selectedMode;
-                return NeumorphicButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedMode = mode;
-                    });
-                    _loadRankings();
-                  },
-                  accent: isSelected,
-                  depth: isSelected ? 3 : 5,
-                  borderRadius: 16,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 12),
-                  child: Text(mode.displayName),
-                );
-              }).toList(),
+              children: [
+                _rankBadge(index),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ranking.formattedTime,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        formatDateTime(ranking.date),
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                NeumorphicIconButton(
+                  icon: Icons.share,
+                  size: 40,
+                  tooltip: l10n.shareRecord,
+                  onPressed: () => _shareRecord(index + 1, ranking),
+                ),
+              ],
             ),
           ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : rankings.isEmpty
-                    ? Center(
-                        child: Text(
-                          AppLocalizations.of(context)!.noRecordsYet,
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        itemCount: rankings.length,
-                        itemBuilder: (context, index) {
-                          final ranking = rankings[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            child: NeumorphicContainer(
-                              borderRadius: 20,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  _rankBadge(index),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          ranking.formattedTime,
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text(
-                                          formatDateTime(ranking.date),
-                                          style:
-                                              TextStyle(color: Colors.grey[600]),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  NeumorphicIconButton(
-                                    icon: Icons.share,
-                                    size: 40,
-                                    tooltip: AppLocalizations.of(context)!
-                                        .shareRecord,
-                                    onPressed: () =>
-                                        _shareRecord(index + 1, ranking),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOnlineList(AppLocalizations l10n) {
+    if (onlineLoading) return const Center(child: CircularProgressIndicator());
+    if (onlineError) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            l10n.onlineUnavailable,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16),
           ),
-        ],
+        ),
+      );
+    }
+    if (onlineEntries.isEmpty) {
+      return Center(
+        child: Text(l10n.noRecordsYet, style: const TextStyle(fontSize: 18)),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadOnline,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: onlineEntries.length,
+        itemBuilder: (context, index) {
+          final e = onlineEntries[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: NeumorphicContainer(
+              borderRadius: 20,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  _rankBadge(index),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          e.playerName,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          e.formattedTime,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

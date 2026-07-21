@@ -4,6 +4,11 @@
 flutter_launcher_icons:
   image_path: "assets/icon/app_icon.png"
   android: true
+  # Android はアダプティブアイコン（前景＋背景の2レイヤー）にする。
+  # 端末やユーザーが選んだマスク（円・角丸・スクワークル等）に追従して形が変わり、
+  # 形を固定しない。前景はセーフゾーンに収めた数字タイルのみ、背景はグラデーション。
+  adaptive_icon_background: "assets/icon/app_icon_background.png"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
   ios: true
   remove_alpha_ios: true
   web:

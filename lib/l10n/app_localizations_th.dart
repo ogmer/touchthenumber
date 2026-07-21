@@ -30,6 +30,31 @@ class AppLocalizationsTh extends AppLocalizations {
   String get countdownGo => 'เริ่ม!';
 
   @override
+  String get newBestRecord => 'สถิติใหม่!';
+
+  @override
+  String behindBest(String time) {
+    return 'ห่างสถิติ $time';
+  }
+
+  @override
+  String rankLabel(int rank) {
+    return 'อันดับ #$rank';
+  }
+
+  @override
+  String get rankingLocalTab => 'ในเครื่อง';
+
+  @override
+  String get rankingOnlineTab => 'ออนไลน์';
+
+  @override
+  String get nickname => 'ชื่อเล่น';
+
+  @override
+  String get onlineUnavailable => 'อันดับออนไลน์ไม่พร้อมใช้งาน';
+
+  @override
   String get ranking => 'อันดับ';
 
   @override

@@ -217,7 +217,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         onPressed: () => context.push('/ranking'),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 20),
                     _popIn(
                       5,
                       7,
@@ -228,7 +228,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         onPressed: () => context.push('/statistics'),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 20),
                     _popIn(
                       6,
                       7,

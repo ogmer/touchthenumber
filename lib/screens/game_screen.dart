@@ -162,13 +162,35 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _stopTimer();
     final finalTime = _elapsedMs.value;
 
+    final statisticsService = ref.read(statisticsServiceProvider);
+    final rankingService = ref.read(rankingServiceProvider);
+
+    // 記録を書き込む前に、更新前のベストタイムを控える（0 は記録なし＝初クリア）
+    final prevBest =
+        (await statisticsService.getStatistics()).bestTime[widget.gameMode] ??
+            0;
+    final isNewBest = prevBest == 0 || finalTime < prevBest;
+
     _confettiController.play();
     await audioService.stopBgm();
     audioService.playCompleteSound();
 
-    final statisticsService = ref.read(statisticsServiceProvider);
-    await ref.read(rankingServiceProvider).addRanking(widget.gameMode, finalTime);
+    await rankingService.addRanking(widget.gameMode, finalTime);
     await statisticsService.recordGame(widget.gameMode, finalTime);
+
+    // オンラインデイリーランキングへ投稿（設定済み かつ ニックネーム入力済みのとき）。
+    // 失敗してもゲームのクリア処理は止めない（fire-and-forget）
+    _submitOnline(finalTime);
+
+    // 今回のタイムがランキング（上位10）で何位に入ったか
+    final rankings = await rankingService.getRankings(widget.gameMode);
+    int? rank;
+    for (var i = 0; i < rankings.length; i++) {
+      if (rankings[i].timeInMilliseconds == finalTime) {
+        rank = i + 1;
+        break;
+      }
+    }
 
     final stats = await statisticsService.getStatistics();
     final todayGamesCount = await statisticsService.getTodayGamesCount();
@@ -181,15 +203,64 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
 
     if (!mounted) return;
-    _showCompleteDialog(newAchievements);
+    _showCompleteDialog(
+      newAchievements,
+      isNewBest: isNewBest,
+      hadPreviousBest: prevBest > 0,
+      // 正なら「ベストまであと」、負なら「ベストをどれだけ縮めたか」
+      diffToBestMs: prevBest > 0 ? finalTime - prevBest : null,
+      rank: rank,
+    );
 
     // クリア直後の節目でストアレビューを依頼する（表示判断はOS任せ）
     ref.read(reviewServiceProvider).maybeRequestReview(stats.overallTotalGames);
   }
 
-  void _showCompleteDialog(List<AchievementType> newAchievements) {
+  /// オンラインランキングへ投稿する。オンライン未設定・ニックネーム未入力なら何もしない。
+  /// エラーはゲーム進行に影響しないよう握りつぶす。
+  Future<void> _submitOnline(int finalTime) async {
+    final online = ref.read(onlineRankingServiceProvider);
+    final name = ref.read(playerNameProvider).trim();
+    if (online == null || name.isEmpty) return;
+    try {
+      await online.submitScore(
+        mode: widget.gameMode,
+        timeMs: finalTime,
+        playerName: name,
+      );
+    } catch (e) {
+      // 投稿失敗は無視（次回のクリアで再投稿される）
+    }
+  }
+
+  void _showCompleteDialog(
+    List<AchievementType> newAchievements, {
+    required bool isNewBest,
+    required bool hadPreviousBest,
+    int? diffToBestMs,
+    int? rank,
+  }) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final timeString = formatTimeMs(_elapsedMs.value);
+
+    // 3秒以内の僅差でベストに届かなかったときだけ「あと○秒」で悔しさを煽る
+    final showNearMiss = !isNewBest &&
+        diffToBestMs != null &&
+        diffToBestMs > 0 &&
+        diffToBestMs <= 3000;
+    // ベストを更新できたときの短縮幅（2回目以降のみ）
+    final improvedMs =
+        isNewBest && hadPreviousBest && diffToBestMs != null && diffToBestMs < 0
+            ? -diffToBestMs
+            : null;
+    // 上位3位はメダル色、それ以外はアクセント色
+    final Color rankColor = switch (rank) {
+      1 => Colors.amber,
+      2 => Colors.blueGrey,
+      3 => Colors.brown,
+      _ => colorScheme.primary,
+    };
 
     showGeneralDialog(
       context: context,
@@ -213,6 +284,73 @@ class _GameScreenState extends ConsumerState<GameScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(l10n.timeLabel(timeString)),
+            // 自己ベスト更新の祝福（縮めた幅も表示して達成感を強める）
+            if (isNewBest) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.emoji_events, color: Colors.amber, size: 22),
+                  const SizedBox(width: 6),
+                  Text(
+                    l10n.newBestRecord,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber,
+                    ),
+                  ),
+                ],
+              ),
+              if (improvedMs != null)
+                Text(
+                  '-${formatTimeMs(improvedMs)}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+            ]
+            // 惜しくも更新ならず（僅差のときだけ煽る）
+            else if (showNearMiss)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  l10n.behindBest(formatTimeMs(diffToBestMs)),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            // ランキング入りした順位バッジ
+            if (rank != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: rankColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.leaderboard, color: rankColor, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      l10n.rankLabel(rank),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: rankColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (newAchievements.isNotEmpty) ...[
               const SizedBox(height: 16),
               const Divider(),
