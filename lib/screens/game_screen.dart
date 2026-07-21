@@ -41,8 +41,12 @@ double calcCellSize({
 class _GameScreenState extends ConsumerState<GameScreen>
     with SingleTickerProviderStateMixin {
   late List<int> numbers;
-  late List<bool> tapped;
-  int currentNumber = 1;
+  // 現在の目標数字。各タイルはこれを購読せず、タップ時に値を読むだけなので、
+  // 数字を進めても盤面全体は再ビルドされない（ヘッダの「次」表示だけが更新される）
+  final ValueNotifier<int> _currentNumber = ValueNotifier(1);
+  // ゲームをやり直すたびに +1。タイルのKeyに含めることで、内部状態（タップ済み等）を
+  // 確実にリセットする
+  int _generation = 0;
   // 経過時間はValueNotifierで時刻表示だけを局所更新する
   // （setStateで33msごとにグリッド全体を再ビルドしない）
   final ValueNotifier<int> _elapsedMs = ValueNotifier(0);
@@ -53,9 +57,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
   // 'ready'→'3'→'2'→'1'→'go' の順で切り替える
   String? _countdownStep;
   late AudioService audioService;
-  Set<int> animatingNumbers = {};
-  int? shakingIndex;
-  int shakeCount = 0;
   late ConfettiController _confettiController;
   late AnimationController _entranceController;
   // タイル登場アニメーションはビルドごとに作らず一度だけ生成して使い回す
@@ -88,10 +89,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void _initGame() {
     numbers = List.generate(widget.gameMode.maxNumber, (index) => index + 1);
     numbers.shuffle(Random());
-    tapped = List.generate(widget.gameMode.maxNumber, (index) => false);
-    animatingNumbers.clear();
-    shakingIndex = null;
-    currentNumber = 1;
+    _currentNumber.value = 1;
+    // 世代を進めてタイルのKeyを変え、内部状態（タップ済み・アニメ中など）をリセットする
+    _generation++;
     _elapsedMs.value = 0;
     isPlaying = false;
     _stopwatch.reset();
@@ -138,37 +138,25 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _elapsedMs.value = _stopwatch.elapsedMilliseconds;
   }
 
-  void _onNumberTap(int index) {
-    final tappedNumber = numbers[index];
-
-    if (tappedNumber == currentNumber) {
-      setState(() {
-        tapped[index] = true;
-        animatingNumbers.add(index);
-        currentNumber++;
-      });
-
-      audioService.playCorrectSound();
-
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          setState(() {
-            animatingNumbers.remove(index);
-          });
-        }
-      });
-
-      if (currentNumber > widget.gameMode.maxNumber) {
-        _finishGame();
-      }
-    } else {
-      setState(() {
-        shakingIndex = index;
-        shakeCount++;
-      });
-      audioService.playErrorSound();
+  /// 正解タイルがタップされたときにタイルから呼ばれる。
+  /// 目標数字を進め、完了なら締める。タップされたタイルの見た目更新はタイル側で
+  /// 完結するため、ここで盤面全体を再ビルドしない（ヘッダの「次」だけが更新される）。
+  void _onCorrect() {
+    audioService.playCorrectSound();
+    final next = _currentNumber.value + 1;
+    _currentNumber.value = next;
+    if (next > widget.gameMode.maxNumber) {
+      _finishGame();
     }
   }
+
+  /// 誤ったタイルがタップされたときにタイルから呼ばれる。
+  void _onWrong() {
+    audioService.playErrorSound();
+  }
+
+  /// 今タップできるか（カウントダウン中は不可）。タイルの判定に渡す。
+  bool _canTap() => _countdownStep == null;
 
   Future<void> _finishGame() async {
     _stopTimer();
@@ -282,83 +270,18 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   Widget _buildTile(int index, double fontSize) {
-    final number = numbers[index];
-    final isTapped = tapped[index];
-    final isAnimating = animatingNumbers.contains(index);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    // 跳ねている最中は「アクティブな見た目」を保ち、跳ね終わってから消す
-    final showActive = !isTapped || isAnimating;
-
-    // タップ後: 一瞬拡大してからふわっと消える。
-    // 未タップは浮き上がったアクセント色の面。タップ済みは opacity で消えるので、
-    // 見えない影(inset blur)を描き続けないよう flat にして描画コストを抑える
-    // （blur=MaskFilter は重く、消えたタイルが積み上がると処理落ちの原因になる）
-    Widget visual = AnimatedScale(
-      scale: isAnimating ? 1.25 : 1.0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      child: AnimatedOpacity(
-        opacity: isTapped && !isAnimating ? 0.0 : 1.0,
-        duration: const Duration(milliseconds: 300),
-        child: NeumorphicContainer(
-          borderRadius: 16,
-          depth: 5,
-          color: showActive ? colorScheme.primary : null,
-          style: showActive
-              ? NeumorphicStyle.raised
-              : NeumorphicStyle.flat,
-          child: Center(
-            child: Text(
-              number.toString(),
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.bold,
-                color: showActive
-                    ? Colors.white
-                    : colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // ミスタップ: 左右にプルプル震える（見た目だけ揺らし、タップ判定は動かさない）
-    if (shakingIndex == index) {
-      visual = TweenAnimationBuilder<double>(
-        key: ValueKey('shake_${index}_$shakeCount'),
-        tween: Tween(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 400),
-        onEnd: () {
-          if (mounted && shakingIndex == index) {
-            setState(() => shakingIndex = null);
-          }
-        },
-        builder: (context, t, child) {
-          final dx = sin(t * pi * 4) * 8 * (1 - t);
-          return Transform.translate(offset: Offset(dx, 0), child: child);
-        },
-        child: visual,
-      );
-    }
-
-    // タップ判定は固定サイズのセル全体で行う。
-    // GestureDetector を拡大・登場・揺れの各アニメーションより外側に置くことで、
-    // ヒット領域がアニメーションで伸縮・移動して判定がブレるのを防ぐ。
-    // HitTestBehavior.opaque でセル矩形全体（角丸の外側や透明部分も含む）を
-    // 反応させ、隙間ぎりぎりを押しても取りこぼさないようにする。
-    return RepaintBoundary(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: (isTapped || _countdownStep != null)
-            ? null
-            : () => _onNumberTap(index),
-        child: ScaleTransition(
-          scale: _entranceAnimations[index],
-          child: visual,
-        ),
-      ),
+    // タイルを独立ウィジェット化し、タップ状態（タップ済み・アニメ中・揺れ中）を
+    // タイル自身が持つ。こうするとタップ時に再ビルドされるのはそのタイル1枚だけになり、
+    // 盤面全体（最大49枚）の再ビルドがなくなる＝処理負荷が大きく下がる
+    return _NumberTile(
+      key: ValueKey('$_generation-$index'),
+      number: numbers[index],
+      fontSize: fontSize,
+      entranceAnimation: _entranceAnimations[index],
+      currentNumber: _currentNumber,
+      canTap: _canTap,
+      onCorrect: _onCorrect,
+      onWrong: _onWrong,
     );
   }
 
@@ -366,6 +289,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void dispose() {
     _stopTimer();
     _elapsedMs.dispose();
+    _currentNumber.dispose();
     _confettiController.dispose();
     for (final animation in _entranceAnimations) {
       animation.dispose();
@@ -408,23 +332,28 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        transitionBuilder: (child, animation) =>
-                            ScaleTransition(
-                          scale: CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOutBack,
+                      // 目標数字の表示はこのTextだけを局所更新する
+                      // （タップで盤面全体を再ビルドしない）
+                      ValueListenableBuilder<int>(
+                        valueListenable: _currentNumber,
+                        builder: (context, current, _) => AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          transitionBuilder: (child, animation) =>
+                              ScaleTransition(
+                            scale: CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeOutBack,
+                            ),
+                            child: child,
                           ),
-                          child: child,
-                        ),
-                        child: Text(
-                          '${min(currentNumber, widget.gameMode.maxNumber)}',
-                          key: ValueKey(currentNumber),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
+                          child: Text(
+                            '${min(current, widget.gameMode.maxNumber)}',
+                            key: ValueKey(current),
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -562,4 +491,133 @@ class _GameScreenState extends ConsumerState<GameScreen>
         'go' => l10n.countdownGo,
         _ => step,
       };
+}
+
+/// 盤面の1マス。タップ状態（未タップ・拡大アニメ中・揺れ中）を自身で保持し、
+/// タップ時にこのタイルだけが再ビルドされるようにする。目標数字の進行や音・完了判定は
+/// 親から渡されたコールバックに委ねる。
+class _NumberTile extends StatefulWidget {
+  final int number;
+  final double fontSize;
+  final Animation<double> entranceAnimation;
+
+  /// 目標数字。購読はせず、タップ時に値を読んで正誤判定するだけ。
+  final ValueNotifier<int> currentNumber;
+
+  /// 今タップを受け付けるか（カウントダウン中は false）。
+  final bool Function() canTap;
+  final VoidCallback onCorrect;
+  final VoidCallback onWrong;
+
+  const _NumberTile({
+    super.key,
+    required this.number,
+    required this.fontSize,
+    required this.entranceAnimation,
+    required this.currentNumber,
+    required this.canTap,
+    required this.onCorrect,
+    required this.onWrong,
+  });
+
+  @override
+  State<_NumberTile> createState() => _NumberTileState();
+}
+
+class _NumberTileState extends State<_NumberTile> {
+  bool _tapped = false;
+  bool _animating = false;
+  bool _shaking = false;
+  int _shakeSeed = 0;
+
+  void _handleTap() {
+    if (_tapped || !widget.canTap()) return;
+    if (widget.currentNumber.value == widget.number) {
+      setState(() {
+        _tapped = true;
+        _animating = true;
+      });
+      widget.onCorrect();
+      // 拡大→フェードで消える演出。このタイルの中だけで完結する
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) setState(() => _animating = false);
+      });
+    } else {
+      setState(() {
+        _shaking = true;
+        _shakeSeed++;
+      });
+      widget.onWrong();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    // 跳ねている最中は「アクティブな見た目」を保ち、跳ね終わってから消す
+    final showActive = !_tapped || _animating;
+
+    // タップ後: 一瞬拡大してからふわっと消える。
+    // 未タップは浮き上がったアクセント色の面。タップ済みは opacity で消えるので、
+    // 見えない影(inset blur)を描き続けないよう flat にして描画コストを抑える
+    Widget visual = AnimatedScale(
+      scale: _animating ? 1.25 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      child: AnimatedOpacity(
+        opacity: _tapped && !_animating ? 0.0 : 1.0,
+        duration: const Duration(milliseconds: 300),
+        child: NeumorphicContainer(
+          borderRadius: 16,
+          depth: 5,
+          color: showActive ? colorScheme.primary : null,
+          style: showActive ? NeumorphicStyle.raised : NeumorphicStyle.flat,
+          child: Center(
+            child: Text(
+              widget.number.toString(),
+              style: TextStyle(
+                fontSize: widget.fontSize,
+                fontWeight: FontWeight.bold,
+                color: showActive
+                    ? Colors.white
+                    : colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // ミスタップ: 左右にプルプル震える（見た目だけ揺らし、タップ判定は動かさない）
+    if (_shaking) {
+      visual = TweenAnimationBuilder<double>(
+        key: ValueKey('shake_$_shakeSeed'),
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 400),
+        onEnd: () {
+          if (mounted && _shaking) setState(() => _shaking = false);
+        },
+        builder: (context, t, child) {
+          final dx = sin(t * pi * 4) * 8 * (1 - t);
+          return Transform.translate(offset: Offset(dx, 0), child: child);
+        },
+        child: visual,
+      );
+    }
+
+    // タップ判定は固定サイズのセル全体で行う。
+    // GestureDetector を拡大・登場・揺れの各アニメーションより外側に置くことで、
+    // ヒット領域がアニメーションで伸縮・移動して判定がブレるのを防ぐ。
+    // HitTestBehavior.opaque でセル矩形全体（角丸の外側や透明部分も含む）を反応させる。
+    return RepaintBoundary(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _tapped ? null : _handleTap,
+        child: ScaleTransition(
+          scale: widget.entranceAnimation,
+          child: visual,
+        ),
+      ),
+    );
+  }
 }
