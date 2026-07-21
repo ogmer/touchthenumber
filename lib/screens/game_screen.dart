@@ -522,8 +522,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ),
           if (_countdownStep != null)
             Positioned.fill(
+              // 暗幕は盤面（影のウォームアップ用に極薄で描いているタイル）を
+              // 完全に隠せる濃さにする。薄いと数字が透けて見えてしまう
               child: Container(
-                color: Colors.black54,
+                color: Colors.black.withValues(alpha: 0.88),
                 child: Center(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
