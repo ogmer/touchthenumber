@@ -129,9 +129,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           const SizedBox(width: 12),
         ],
       ),
-      body: Center(
+      // 内容が画面より小さいときは中央、はみ出すときはスクロールできるようにする
+      // （難易度ラベル追加で縦に伸びても、小さい端末で見切れないようにするため）
+      body: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             _popIn(
               0,
@@ -148,10 +154,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   7,
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    // ボタンにはモード名だけを載せ、難易度ラベルはボタンの外・右横に置く
-                    child: Row(
+                    // ボタンにはモード名だけを載せ、難易度ラベルはボタンの上に置く
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Text(
+                          entry.$2.difficultyLabel(l10n),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         NeumorphicButton(
                           onPressed: () => _startGame(entry.$2),
                           accent: true,
@@ -166,15 +181,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 20),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Text(
-                          entry.$2.difficultyLabel(l10n),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ],
@@ -215,6 +221,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
           ],
+        ),
+            ),
+          ),
         ),
       ),
       ),

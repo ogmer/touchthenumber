@@ -26,18 +26,27 @@ class AudioService {
     await _preloadAssets();
   }
 
-  /// 効果音を鳴らすたびにBGMが止まる問題への対策。
+  /// 効果音（正解・ミス・クリア）を鳴らすたびにBGMが止まる問題への対策。
   /// 既定(focus: gain)では各プレイヤーが再生時にオーディオフォーカスを奪い合い、
   /// 効果音プレイヤーがフォーカスを取るとBGMプレイヤーが停止させられてしまう。
   /// mixWithOthers にすると Android はフォーカス要求をせず、iOS は他とミックスするため、
   /// アプリ内の効果音とBGMが共存できる。
+  /// グローバル設定だけでは「生成済みの各プレイヤー」に反映されないため、
+  /// 全プレイヤーへ個別にも適用する。
   Future<void> _configureAudioContext() async {
+    final context = AudioContextConfig(
+      focus: AudioContextConfigFocus.mixWithOthers,
+    ).build();
     try {
-      await AudioPlayer.global.setAudioContext(
-        AudioContextConfig(
-          focus: AudioContextConfigFocus.mixWithOthers,
-        ).build(),
-      );
+      await AudioPlayer.global.setAudioContext(context);
+      for (final player in [
+        _correctPlayer,
+        _errorPlayer,
+        _completePlayer,
+        _bgmPlayer,
+      ]) {
+        await player.setAudioContext(context);
+      }
     } catch (e) {
       // 設定に対応しない環境では既定のまま続行する
     }
