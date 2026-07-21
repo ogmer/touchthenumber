@@ -294,34 +294,29 @@ class _GameScreenState extends ConsumerState<GameScreen>
     // 未タップは浮き上がったアクセント色の面。タップ済みは opacity で消えるので、
     // 見えない影(inset blur)を描き続けないよう flat にして描画コストを抑える
     // （blur=MaskFilter は重く、消えたタイルが積み上がると処理落ちの原因になる）
-    Widget tile = AnimatedScale(
+    Widget visual = AnimatedScale(
       scale: isAnimating ? 1.25 : 1.0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
       child: AnimatedOpacity(
         opacity: isTapped && !isAnimating ? 0.0 : 1.0,
         duration: const Duration(milliseconds: 300),
-        child: GestureDetector(
-          onTap: (isTapped || _countdownStep != null)
-              ? null
-              : () => _onNumberTap(index),
-          child: NeumorphicContainer(
-            borderRadius: 16,
-            depth: 5,
-            color: showActive ? colorScheme.primary : null,
-            style: showActive
-                ? NeumorphicStyle.raised
-                : NeumorphicStyle.flat,
-            child: Center(
-              child: Text(
-                number.toString(),
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.bold,
-                  color: showActive
-                      ? Colors.white
-                      : colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
+        child: NeumorphicContainer(
+          borderRadius: 16,
+          depth: 5,
+          color: showActive ? colorScheme.primary : null,
+          style: showActive
+              ? NeumorphicStyle.raised
+              : NeumorphicStyle.flat,
+          child: Center(
+            child: Text(
+              number.toString(),
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: FontWeight.bold,
+                color: showActive
+                    ? Colors.white
+                    : colorScheme.onSurface.withValues(alpha: 0.4),
               ),
             ),
           ),
@@ -329,9 +324,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
       ),
     );
 
-    // ミスタップ: 左右にプルプル震える
+    // ミスタップ: 左右にプルプル震える（見た目だけ揺らし、タップ判定は動かさない）
     if (shakingIndex == index) {
-      tile = TweenAnimationBuilder<double>(
+      visual = TweenAnimationBuilder<double>(
         key: ValueKey('shake_${index}_$shakeCount'),
         tween: Tween(begin: 0, end: 1),
         duration: const Duration(milliseconds: 400),
@@ -344,14 +339,26 @@ class _GameScreenState extends ConsumerState<GameScreen>
           final dx = sin(t * pi * 4) * 8 * (1 - t);
           return Transform.translate(offset: Offset(dx, 0), child: child);
         },
-        child: tile,
+        child: visual,
       );
     }
 
-    // RepaintBoundaryでタイルごとに再描画を分離する
-    // （1枚のアニメーション中に盤面全体を描き直さない）
+    // タップ判定は固定サイズのセル全体で行う。
+    // GestureDetector を拡大・登場・揺れの各アニメーションより外側に置くことで、
+    // ヒット領域がアニメーションで伸縮・移動して判定がブレるのを防ぐ。
+    // HitTestBehavior.opaque でセル矩形全体（角丸の外側や透明部分も含む）を
+    // 反応させ、隙間ぎりぎりを押しても取りこぼさないようにする。
     return RepaintBoundary(
-      child: ScaleTransition(scale: _entranceAnimations[index], child: tile),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: (isTapped || _countdownStep != null)
+            ? null
+            : () => _onNumberTap(index),
+        child: ScaleTransition(
+          scale: _entranceAnimations[index],
+          child: visual,
+        ),
+      ),
     );
   }
 
