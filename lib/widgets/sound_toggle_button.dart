@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../providers.dart';
+import 'neumorphic.dart';
 
 /// 効果音とBGMをまとめて切り替えるAppBar用のマスターミュートボタン。
 /// 設定画面の「サウンド」「BGM」スイッチとも状態が同期する
@@ -16,8 +17,8 @@ class SoundToggleButton extends ConsumerWidget {
     final muted = !soundOn && !bgmOn;
 
     final l10n = AppLocalizations.of(context)!;
-    return IconButton(
-      icon: Icon(muted ? Icons.volume_off : Icons.volume_up),
+    return NeumorphicIconButton(
+      icon: muted ? Icons.volume_off : Icons.volume_up,
       tooltip: muted ? l10n.unmuteTooltip : l10n.muteTooltip,
       onPressed: () => _toggleAll(ref, enable: muted),
     );

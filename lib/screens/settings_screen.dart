@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
-import '../l10n/enum_translations.dart';
 import '../models/app_theme.dart';
 import '../providers.dart';
+import '../widgets/neumorphic.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -58,38 +58,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ),
-          ...AppTheme.values.map((theme) {
-            final isSelected = currentTheme == theme;
-            return ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.color,
-                  shape: BoxShape.circle,
-                  border: isSelected
-                      ? Border.all(color: Colors.black, width: 3)
-                      : null,
-                ),
-              ),
-              title: Text(theme.displayName(l10n)),
-              trailing: isSelected ? const Icon(Icons.check) : null,
-              onTap: () => ref.read(themeProvider.notifier).setTheme(theme),
-            );
-          }),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: AppTheme.values.map((theme) {
+                final isSelected = currentTheme == theme;
+                return GestureDetector(
+                  onTap: () =>
+                      ref.read(themeProvider.notifier).setTheme(theme),
+                  child: NeumorphicContainer(
+                    shape: BoxShape.circle,
+                    style: isSelected
+                        ? NeumorphicStyle.pressed
+                        : NeumorphicStyle.raised,
+                    depth: 5,
+                    child: SizedBox(
+                      width: 56,
+                      height: 56,
+                      child: Center(
+                        child: NeumorphicContainer(
+                          shape: BoxShape.circle,
+                          depth: 3,
+                          color: theme.color,
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: isSelected
+                                ? const Icon(Icons.check,
+                                    color: Colors.white, size: 20)
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 8),
           const Divider(),
-          SwitchListTile(
-            title: Text(l10n.sound),
-            subtitle: Text(l10n.soundSubtitle),
-            secondary: Icon(soundOn ? Icons.volume_up : Icons.volume_off),
+          _buildSwitchTile(
+            title: l10n.sound,
+            subtitle: l10n.soundSubtitle,
+            icon: soundOn ? Icons.volume_up : Icons.volume_off,
             value: soundOn,
             onChanged: (value) =>
                 ref.read(soundEnabledProvider.notifier).set(value),
           ),
-          SwitchListTile(
-            title: Text(l10n.bgm),
-            subtitle: Text(l10n.bgmSubtitle),
-            secondary: Icon(bgmOn ? Icons.music_note : Icons.music_off),
+          _buildSwitchTile(
+            title: l10n.bgm,
+            subtitle: l10n.bgmSubtitle,
+            icon: bgmOn ? Icons.music_note : Icons.music_off,
             value: bgmOn,
             onChanged: (value) async {
               await ref.read(bgmEnabledProvider.notifier).set(value);
@@ -114,20 +136,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: DropdownButtonHideUnderline(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: NeumorphicContainer(
+              style: NeumorphicStyle.pressed,
+              borderRadius: 16,
+              depth: 5,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: DropdownButtonHideUnderline(
                 child: DropdownButton<String?>(
                   value: localeCode,
                   isExpanded: true,
-                  icon: const Icon(Icons.arrow_drop_down),
+                  borderRadius: BorderRadius.circular(16),
+                  icon: Icon(
+                    Icons.arrow_drop_down,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   items: [
                     DropdownMenuItem<String?>(
                       value: null,
@@ -147,6 +170,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// サウンド/BGMのオンオフ。ニューモフィズムの面にアイコンとMaterialスイッチを載せる
+  Widget _buildSwitchTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final accent = Theme.of(context).colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: NeumorphicContainer(
+        borderRadius: 20,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, color: accent),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            Switch(value: value, onChanged: onChanged),
+          ],
+        ),
       ),
     );
   }

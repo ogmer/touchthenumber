@@ -4,6 +4,7 @@ import '../models/game_mode.dart';
 import '../l10n/app_localizations.dart';
 import '../models/statistics.dart';
 import '../providers.dart';
+import '../widgets/neumorphic.dart';
 import '../widgets/reset_confirm_dialog.dart';
 
 class StatisticsScreen extends ConsumerStatefulWidget {
@@ -57,10 +58,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
       appBar: AppBar(
         title: Text(l10n.statistics),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
+          NeumorphicIconButton(
+            icon: Icons.refresh,
             onPressed: _resetStatistics,
           ),
+          const SizedBox(width: 12),
         ],
       ),
       body: isLoading
@@ -93,33 +95,31 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   }
 
   Widget _buildOverallStats(AppLocalizations l10n) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.overallStats,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+    return NeumorphicContainer(
+      padding: const EdgeInsets.all(20.0),
+      depth: 7,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.overallStats,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            _buildStatRow(
-              l10n.totalPlays,
-              l10n.timesCount(statistics!.overallTotalGames),
-              Icons.videogame_asset,
-            ),
-            _buildStatRow(
-              l10n.totalPlayTime,
-              statistics!.formatTime(statistics!.overallTotalTime),
-              Icons.timer,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+          _buildStatRow(
+            l10n.totalPlays,
+            l10n.timesCount(statistics!.overallTotalGames),
+            Icons.videogame_asset,
+          ),
+          _buildStatRow(
+            l10n.totalPlayTime,
+            statistics!.formatTime(statistics!.overallTotalTime),
+            Icons.timer,
+          ),
+        ],
       ),
     );
   }
@@ -128,20 +128,21 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     final games = statistics!.totalGames[mode] ?? 0;
     final bestTime = statistics!.bestTime[mode] ?? 0;
     final avgTime = statistics!.getAverageTime(mode);
+    final accent = Theme.of(context).colorScheme.primary;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: NeumorphicContainer(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               mode.displayName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: accent,
               ),
             ),
             const SizedBox(height: 12),

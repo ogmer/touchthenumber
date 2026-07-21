@@ -5,6 +5,7 @@ import '../l10n/enum_translations.dart';
 import '../models/achievement.dart';
 import '../providers.dart';
 import '../utils/formatting.dart';
+import '../widgets/neumorphic.dart';
 
 class AchievementsScreen extends ConsumerStatefulWidget {
   const AchievementsScreen({super.key});
@@ -86,55 +87,75 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
     final isUnlocked = _isUnlocked(type);
     final achievement = _getAchievement(type);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: isUnlocked ? 4 : 1,
-      child: ListTile(
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: isUnlocked ? Colors.amber : Colors.grey[300],
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            type.icon,
-            color: isUnlocked ? Colors.white : Colors.grey[600],
-            size: 28,
-          ),
-        ),
-        title: Text(
-          type.title(l10n),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isUnlocked ? Colors.black : Colors.grey,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    // 未解除は凹んだ面（＝まだ手に入っていない）、解除済みは浮き上がった面で表現する
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: NeumorphicContainer(
+        style:
+            isUnlocked ? NeumorphicStyle.raised : NeumorphicStyle.pressed,
+        depth: isUnlocked ? 6 : 4,
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            Text(
-              type.description(l10n),
-              style: TextStyle(
-                color: isUnlocked ? Colors.black87 : Colors.grey,
-              ),
-            ),
-            if (isUnlocked && achievement != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                l10n.unlockedAt(formatDate(achievement.unlockedAt)),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
+            NeumorphicContainer(
+              shape: BoxShape.circle,
+              depth: 4,
+              color: isUnlocked ? Colors.amber : null,
+              style: isUnlocked
+                  ? NeumorphicStyle.raised
+                  : NeumorphicStyle.flat,
+              child: SizedBox(
+                width: 50,
+                height: 50,
+                child: Icon(
+                  type.icon,
+                  color: isUnlocked ? Colors.white : Colors.grey[500],
+                  size: 28,
                 ),
               ),
-            ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    type.title(l10n),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isUnlocked
+                          ? Theme.of(context).colorScheme.onSurface
+                          : Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    type.description(l10n),
+                    style: TextStyle(
+                      color: isUnlocked ? Colors.black87 : Colors.grey,
+                    ),
+                  ),
+                  if (isUnlocked && achievement != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.unlockedAt(formatDate(achievement.unlockedAt)),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            isUnlocked
+                ? const Icon(Icons.check_circle, color: Colors.green)
+                : const Icon(Icons.lock_outline, color: Colors.grey),
           ],
         ),
-        trailing: isUnlocked
-            ? const Icon(Icons.check_circle, color: Colors.green)
-            : const Icon(Icons.lock_outline, color: Colors.grey),
       ),
     );
   }

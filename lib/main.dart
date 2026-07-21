@@ -61,10 +61,18 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     }
   }
 
+  /// テーマのシード色から、ニューモフィズムの淡い面色を導出する。
+  /// 全テーマで明度・彩度をそろえ、色相だけシード色に合わせて柔らかく色付けする。
+  static Color _neumorphicBase(Color seed) {
+    final hsl = HSLColor.fromColor(seed);
+    return hsl.withSaturation(0.18).withLightness(0.91).toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
     final appTheme = ref.watch(themeProvider);
     final colorScheme = appTheme.colorScheme;
+    final neumorphicBase = _neumorphicBase(appTheme.color);
 
     return MaterialApp.router(
       title: 'Touch the Number',
@@ -77,12 +85,15 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         useMaterial3: true,
         // 日本語グリフを持つ同梱フォントを全体の既定にする（Web版の文字化け対策）
         fontFamily: 'MPLUSRounded1c',
-        // 丸ゴシックに合わせた、丸く柔らかいデザインで全画面を統一する
-        scaffoldBackgroundColor: colorScheme.surfaceContainerLow,
+        // ニューモフィズム: 背景・要素・ダイアログすべてを同じ淡い面色で統一し、
+        // 影の陰影だけで立体感を出す
+        scaffoldBackgroundColor: neumorphicBase,
+        canvasColor: neumorphicBase,
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
           foregroundColor: colorScheme.primary,
           elevation: 0,
+          scrolledUnderElevation: 0,
           centerTitle: true,
           // 背景は常にライト配色のため、OSのダークモードに関わらず
           // ステータスバーのアイコンは常に濃色で固定し、背景に埋もれないようにする
@@ -96,25 +107,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             color: colorScheme.primary,
           ),
         ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            shape: const StadiumBorder(),
-            elevation: 3,
-            shadowColor: colorScheme.primary.withValues(alpha: 0.35),
-            textStyle: const TextStyle(
-              fontFamily: 'MPLUSRounded1c',
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        cardTheme: CardThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 2,
-          shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
-        ),
         dialogTheme: DialogThemeData(
+          backgroundColor: neumorphicBase,
+          elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),

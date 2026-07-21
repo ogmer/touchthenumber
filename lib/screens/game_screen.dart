@@ -10,6 +10,7 @@ import '../models/achievement.dart';
 import '../providers.dart';
 import '../services/audio_service.dart';
 import '../utils/formatting.dart';
+import '../widgets/neumorphic.dart';
 import '../widgets/sound_toggle_button.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -285,7 +286,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
     // 跳ねている最中は「アクティブな見た目」を保ち、跳ね終わってから消す
     final showActive = !isTapped || isAnimating;
 
-    // タップ後: 一瞬拡大してからふわっと消える
+    // タップ後: 一瞬拡大してからふわっと消える。
+    // 未タップは浮き上がったアクセント色の面、タップ済みは凹んだ淡色の面にする
     Widget tile = AnimatedScale(
       scale: isAnimating ? 1.25 : 1.0,
       duration: const Duration(milliseconds: 300),
@@ -293,23 +295,26 @@ class _GameScreenState extends ConsumerState<GameScreen>
       child: AnimatedOpacity(
         opacity: isTapped && !isAnimating ? 0.0 : 1.0,
         duration: const Duration(milliseconds: 300),
-        child: Material(
-          color: showActive ? colorScheme.primary : Colors.grey[300],
-          borderRadius: BorderRadius.circular(16),
-          elevation: showActive ? 3 : 0,
-          shadowColor: colorScheme.primary.withValues(alpha: 0.4),
-          child: InkWell(
-            onTap: (isTapped || _countdownStep != null)
-                ? null
-                : () => _onNumberTap(index),
-            borderRadius: BorderRadius.circular(16),
+        child: GestureDetector(
+          onTap: (isTapped || _countdownStep != null)
+              ? null
+              : () => _onNumberTap(index),
+          child: NeumorphicContainer(
+            borderRadius: 16,
+            depth: 5,
+            color: showActive ? colorScheme.primary : null,
+            style: showActive
+                ? NeumorphicStyle.raised
+                : NeumorphicStyle.pressed,
             child: Center(
               child: Text(
                 number.toString(),
                 style: TextStyle(
                   fontSize: fontSize,
                   fontWeight: FontWeight.bold,
-                  color: showActive ? Colors.white : Colors.grey[500],
+                  color: showActive
+                      ? Colors.white
+                      : colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
             ),
@@ -370,16 +375,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
           Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primaryContainer
-                    .withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(28),
-              ),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: NeumorphicContainer(
+              borderRadius: 28,
+              depth: 6,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -391,8 +392,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       AnimatedSwitcher(
@@ -411,9 +411,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),

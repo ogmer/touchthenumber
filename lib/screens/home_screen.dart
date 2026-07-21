@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/enum_translations.dart';
 import '../models/game_mode.dart';
 import '../providers.dart';
+import '../widgets/neumorphic.dart';
 import '../widgets/sound_toggle_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -58,6 +59,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
+  // ランキング・統計・実績への遷移ボタン。
+  // 面はニューモフィズムの淡色で統一し、アイコンだけ色分けして識別しやすくする
+  Widget _menuButton({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return NeumorphicButton(
+      onPressed: onPressed,
+      borderRadius: 20,
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 160),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: iconColor),
+            const SizedBox(width: 10),
+            Text(label, style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+
   // 各要素を上から順番にバウンドさせながら登場させる
   Widget _popIn(int order, int total, Widget child) {
     final start = (order / (total + 2)).clamp(0.0, 0.8);
@@ -88,14 +116,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         title: Text(l10n.appTitle),
         actions: [
           const SoundToggleButton(),
-          IconButton(
-            icon: const Icon(Icons.help_outline),
+          const SizedBox(width: 8),
+          NeumorphicIconButton(
+            icon: Icons.help_outline,
             onPressed: () => context.push('/tutorial'),
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
+          const SizedBox(width: 8),
+          NeumorphicIconButton(
+            icon: Icons.settings,
             onPressed: () => context.push('/settings'),
           ),
+          const SizedBox(width: 12),
         ],
       ),
       body: Center(
@@ -117,29 +148,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   7,
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: ElevatedButton(
+                    child: NeumorphicButton(
                       onPressed: () => _startGame(entry.$2),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(200, 60),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        textStyle: const TextStyle(fontSize: 20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(entry.$2.displayName),
-                          const SizedBox(width: 8),
-                          Text(
-                            entry.$2.difficultyLabel(l10n),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
+                      accent: true,
+                      borderRadius: 24,
+                      depth: 7,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 160),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              entry.$2.displayName,
+                              style: const TextStyle(fontSize: 20),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Text(
+                              entry.$2.difficultyLabel(l10n),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -148,45 +185,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             _popIn(
               4,
               7,
-              ElevatedButton.icon(
+              _menuButton(
+                icon: Icons.emoji_events,
+                iconColor: Colors.orange,
+                label: l10n.ranking,
                 onPressed: () => context.push('/ranking'),
-                icon: const Icon(Icons.emoji_events),
-                label: Text(l10n.ranking),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 50),
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                ),
               ),
             ),
             const SizedBox(height: 12),
             _popIn(
               5,
               7,
-              ElevatedButton.icon(
+              _menuButton(
+                icon: Icons.bar_chart,
+                iconColor: Colors.green,
+                label: l10n.statistics,
                 onPressed: () => context.push('/statistics'),
-                icon: const Icon(Icons.bar_chart),
-                label: Text(l10n.statistics),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 50),
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
               ),
             ),
             const SizedBox(height: 12),
             _popIn(
               6,
               7,
-              ElevatedButton.icon(
+              _menuButton(
+                icon: Icons.military_tech,
+                iconColor: Colors.purple,
+                label: l10n.achievements,
                 onPressed: () => context.push('/achievements'),
-                icon: const Icon(Icons.military_tech),
-                label: Text(l10n.achievements),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 50),
-                  backgroundColor: Colors.purple,
-                  foregroundColor: Colors.white,
-                ),
               ),
             ),
           ],

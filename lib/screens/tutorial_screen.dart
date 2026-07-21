@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/neumorphic.dart';
 
 class TutorialScreen extends StatefulWidget {
   const TutorialScreen({super.key});
@@ -132,10 +133,18 @@ class _TutorialScreenState extends State<TutorialScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            page.icon,
-            size: 100,
-            color: Theme.of(context).colorScheme.primary,
+          NeumorphicContainer(
+            shape: BoxShape.circle,
+            depth: 8,
+            child: SizedBox(
+              width: 160,
+              height: 160,
+              child: Icon(
+                page.icon,
+                size: 90,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
           const SizedBox(height: 40),
           Text(
