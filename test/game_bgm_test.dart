@@ -20,6 +20,10 @@ class SpyAudioService implements AudioService {
   @override
   Future<void> stopBgm() async => calls.add('stopBgm');
   @override
+  Future<void> pauseBgmForBackground() async => calls.add('pauseBgmForBackground');
+  @override
+  Future<void> resumeBgmFromBackground() async => calls.add('resumeBgmFromBackground');
+  @override
   bool get isBgmPlaying => false;
   @override
   Future<void> playCorrectSound() async {}
@@ -32,7 +36,8 @@ class SpyAudioService implements AudioService {
 }
 
 void main() {
-  testWidgets('tapping the first number starts game BGM', (tester) async {
+  testWidgets('game BGM starts automatically once the countdown finishes',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final spy = SpyAudioService();
@@ -52,7 +57,16 @@ void main() {
     await tester.tap(find.text('5×5'));
     await tester.pumpAndSettle();
 
-    // グリッド内の「1」のタイルをタップ（ヘッダの「次:1」と区別する）
+    // カウントダウン中（準備OK？→3→2→1→スタート）はまだBGMが始まらない
+    expect(spy.calls, isNot(contains('startGameBgm')));
+
+    // 「準備OK？3・2・1・スタート」のカウントダウンが終わるまで進める
+    // （ready/3/2/1/goで合計3300ms）。カウントダウン完了と同時にBGMが始まる
+    await tester.pump(const Duration(milliseconds: 3400));
+
+    expect(spy.calls, contains('startGameBgm'));
+
+    // カウントダウン終了後はタイルをタップできる
     final firstTile = find.descendant(
       of: find.byType(GridView),
       matching: find.text('1'),
@@ -60,8 +74,6 @@ void main() {
     expect(firstTile, findsOneWidget);
     await tester.tap(firstTile);
     await tester.pump();
-
-    expect(spy.calls, contains('startGameBgm'));
 
     // 後始末: ゲーム画面をdisposeしてタイマーを止め、残った遅延Timerを消化する
     await tester.pumpWidget(const SizedBox());

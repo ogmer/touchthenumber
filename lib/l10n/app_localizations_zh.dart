@@ -15,6 +15,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get selectGameMode => '选择游戏模式';
 
   @override
+  String get difficultyEasy => '初级';
+
+  @override
+  String get difficultyMedium => '中级';
+
+  @override
+  String get difficultyHard => '高级';
+
+  @override
+  String get countdownReady => '准备好了吗？';
+
+  @override
+  String get countdownGo => '开始！';
+
+  @override
   String get ranking => '排行榜';
 
   @override
@@ -270,6 +285,21 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get selectGameMode => '選擇遊戲模式';
+
+  @override
+  String get difficultyEasy => '初級';
+
+  @override
+  String get difficultyMedium => '中級';
+
+  @override
+  String get difficultyHard => '高級';
+
+  @override
+  String get countdownReady => '準備好了嗎？';
+
+  @override
+  String get countdownGo => '開始！';
 
   @override
   String get ranking => '排行榜';

@@ -137,6 +137,36 @@ abstract class AppLocalizations {
   /// **'Select Game Mode'**
   String get selectGameMode;
 
+  /// No description provided for @difficultyEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get difficultyEasy;
+
+  /// No description provided for @difficultyMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Intermediate'**
+  String get difficultyMedium;
+
+  /// No description provided for @difficultyHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get difficultyHard;
+
+  /// No description provided for @countdownReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready?'**
+  String get countdownReady;
+
+  /// No description provided for @countdownGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Go!'**
+  String get countdownGo;
+
   /// No description provided for @ranking.
   ///
   /// In en, this message translates to:

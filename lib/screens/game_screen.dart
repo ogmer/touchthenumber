@@ -48,6 +48,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
   final Stopwatch _stopwatch = Stopwatch();
   Timer? timer;
   bool isPlaying = false;
+  // null になったらカウントダウン終了・入力受付開始。
+  // 'ready'→'3'→'2'→'1'→'go' の順で切り替える
+  String? _countdownStep;
   late AudioService audioService;
   Set<int> animatingNumbers = {};
   int? shakingIndex;
@@ -78,6 +81,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       );
     });
     _initGame();
+    _startCountdown();
   }
 
   void _initGame() {
@@ -94,6 +98,28 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _entranceController.forward(from: 0);
   }
 
+  /// 「準備OK？」→3→2→1→「スタート」の順で表示し、終わったらゲームを開始する。
+  /// この間はタイルをタップできない
+  Future<void> _startCountdown() async {
+    const steps = ['ready', '3', '2', '1', 'go'];
+    for (final step in steps) {
+      if (!mounted) return;
+      setState(() => _countdownStep = step);
+      await Future.delayed(
+        Duration(milliseconds: step == 'go' ? 500 : 700),
+      );
+    }
+    if (!mounted) return;
+    setState(() => _countdownStep = null);
+    _beginPlay();
+  }
+
+  void _beginPlay() {
+    isPlaying = true;
+    _startTimer();
+    audioService.startGameBgm();
+  }
+
   void _startTimer() {
     _stopwatch.start();
     timer = Timer.periodic(const Duration(milliseconds: 33), (timer) {
@@ -108,12 +134,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   void _onNumberTap(int index) {
-    if (!isPlaying) {
-      isPlaying = true;
-      _startTimer();
-      audioService.startGameBgm();
-    }
-
     final tappedNumber = numbers[index];
 
     if (tappedNumber == currentNumber) {
@@ -240,6 +260,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
               setState(() {
                 _initGame();
               });
+              _startCountdown();
             },
             child: Text(l10n.playAgain),
           ),
@@ -278,7 +299,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
           elevation: showActive ? 3 : 0,
           shadowColor: colorScheme.primary.withValues(alpha: 0.4),
           child: InkWell(
-            onTap: isTapped ? null : () => _onNumberTap(index),
+            onTap: (isTapped || _countdownStep != null)
+                ? null
+                : () => _onNumberTap(index),
             borderRadius: BorderRadius.circular(16),
             child: Center(
               child: Text(
@@ -477,8 +500,44 @@ class _GameScreenState extends ConsumerState<GameScreen>
               ],
             ),
           ),
+          if (_countdownStep != null)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.elasticOut,
+                      ),
+                      child: FadeTransition(opacity: animation, child: child),
+                    ),
+                    child: Text(
+                      _countdownLabel(
+                        _countdownStep!,
+                        AppLocalizations.of(context)!,
+                      ),
+                      key: ValueKey(_countdownStep),
+                      style: const TextStyle(
+                        fontSize: 64,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
+
+  String _countdownLabel(String step, AppLocalizations l10n) => switch (step) {
+        'ready' => l10n.countdownReady,
+        'go' => l10n.countdownGo,
+        _ => step,
+      };
 }

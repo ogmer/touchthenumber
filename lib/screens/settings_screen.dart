@@ -13,6 +13,27 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  // 言語名は各言語の自称で表示する（多言語アプリの慣例）。
+  // 「システムの言語に従う」はローカライズが必要なため build() 側で先頭に追加する
+  static const _languageOptions = [
+    (code: 'ja', label: '日本語'),
+    (code: 'en', label: 'English'),
+    (code: 'zh', label: '简体中文'),
+    (code: 'zh_Hant', label: '繁體中文'),
+    (code: 'ko', label: '한국어'),
+    (code: 'es', label: 'Español'),
+    (code: 'fr', label: 'Français'),
+    (code: 'de', label: 'Deutsch'),
+    (code: 'it', label: 'Italiano'),
+    (code: 'pt', label: 'Português'),
+    (code: 'ru', label: 'Русский'),
+    (code: 'ar', label: 'العربية'),
+    (code: 'hi', label: 'हिन्दी'),
+    (code: 'id', label: 'Bahasa Indonesia'),
+    (code: 'th', label: 'ไทย'),
+    (code: 'vi', label: 'Tiếng Việt'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -92,48 +113,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ),
-          // 言語名は各言語の自称で表示する（多言語アプリの慣例）
-          ...[
-            (code: null, label: l10n.languageSystem),
-            (code: 'ja', label: '日本語'),
-            (code: 'en', label: 'English'),
-            (code: 'zh', label: '简体中文'),
-            (code: 'zh_Hant', label: '繁體中文'),
-            (code: 'ko', label: '한국어'),
-            (code: 'es', label: 'Español'),
-            (code: 'fr', label: 'Français'),
-            (code: 'de', label: 'Deutsch'),
-            (code: 'it', label: 'Italiano'),
-            (code: 'pt', label: 'Português'),
-            (code: 'ru', label: 'Русский'),
-            (code: 'ar', label: 'العربية'),
-            (code: 'hi', label: 'हिन्दी'),
-            (code: 'id', label: 'Bahasa Indonesia'),
-            (code: 'th', label: 'ไทย'),
-            (code: 'vi', label: 'Tiếng Việt'),
-          ].map(
-            (option) => _buildLanguageTile(
-              label: option.label,
-              code: option.code,
-              selectedCode: localeCode,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: DropdownButtonHideUnderline(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButton<String?>(
+                  value: localeCode,
+                  isExpanded: true,
+                  icon: const Icon(Icons.arrow_drop_down),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(l10n.languageSystem),
+                    ),
+                    ..._languageOptions.map(
+                      (option) => DropdownMenuItem<String?>(
+                        value: option.code,
+                        child: Text(option.label),
+                      ),
+                    ),
+                  ],
+                  onChanged: (code) =>
+                      ref.read(localeProvider.notifier).set(code),
+                ),
+              ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildLanguageTile({
-    required String label,
-    required String? code,
-    required String? selectedCode,
-  }) {
-    final isSelected = code == selectedCode;
-    return ListTile(
-      leading: const Icon(Icons.language),
-      title: Text(label),
-      trailing: isSelected ? const Icon(Icons.check) : null,
-      onTap: () => ref.read(localeProvider.notifier).set(code),
     );
   }
 }

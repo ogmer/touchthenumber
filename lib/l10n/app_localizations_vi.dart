@@ -15,6 +15,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get selectGameMode => 'Chọn chế độ chơi';
 
   @override
+  String get difficultyEasy => 'Mới bắt đầu';
+
+  @override
+  String get difficultyMedium => 'Trung cấp';
+
+  @override
+  String get difficultyHard => 'Nâng cao';
+
+  @override
+  String get countdownReady => 'Sẵn sàng?';
+
+  @override
+  String get countdownGo => 'Bắt đầu!';
+
+  @override
   String get ranking => 'Bảng xếp hạng';
 
   @override

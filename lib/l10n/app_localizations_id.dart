@@ -15,6 +15,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get selectGameMode => 'Pilih mode permainan';
 
   @override
+  String get difficultyEasy => 'Pemula';
+
+  @override
+  String get difficultyMedium => 'Menengah';
+
+  @override
+  String get difficultyHard => 'Mahir';
+
+  @override
+  String get countdownReady => 'Siap?';
+
+  @override
+  String get countdownGo => 'Mulai!';
+
+  @override
   String get ranking => 'Peringkat';
 
   @override

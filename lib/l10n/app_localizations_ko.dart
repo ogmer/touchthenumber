@@ -15,6 +15,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get selectGameMode => '게임 모드 선택';
 
   @override
+  String get difficultyEasy => '초급';
+
+  @override
+  String get difficultyMedium => '중급';
+
+  @override
+  String get difficultyHard => '고급';
+
+  @override
+  String get countdownReady => '준비됐나요?';
+
+  @override
+  String get countdownGo => '시작!';
+
+  @override
   String get ranking => '랭킹';
 
   @override

@@ -15,6 +15,21 @@ class AppLocalizationsHi extends AppLocalizations {
   String get selectGameMode => 'गेम मोड चुनें';
 
   @override
+  String get difficultyEasy => 'शुरुआती';
+
+  @override
+  String get difficultyMedium => 'मध्यम';
+
+  @override
+  String get difficultyHard => 'उन्नत';
+
+  @override
+  String get countdownReady => 'तैयार हैं?';
+
+  @override
+  String get countdownGo => 'शुरू!';
+
+  @override
   String get ranking => 'रैंकिंग';
 
   @override

@@ -8,7 +8,11 @@
       "Bash(flutter build:*)",
       "Bash(taskkill:*)",
       "Bash(start ms-settings:developers)",
-      "PowerShell(flutter analyze 2>&1)"
+      "PowerShell(flutter analyze 2>&1)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter gen-l10n *)",
+      "Bash(flutter pub *)",
+      "Bash(flutter test *)"
     ]
   }
 }

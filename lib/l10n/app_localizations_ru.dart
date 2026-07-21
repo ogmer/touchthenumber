@@ -15,6 +15,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get selectGameMode => 'Выберите режим игры';
 
   @override
+  String get difficultyEasy => 'Новичок';
+
+  @override
+  String get difficultyMedium => 'Средний';
+
+  @override
+  String get difficultyHard => 'Продвинутый';
+
+  @override
+  String get countdownReady => 'Готовы?';
+
+  @override
+  String get countdownGo => 'Старт!';
+
+  @override
   String get ranking => 'Рейтинг';
 
   @override

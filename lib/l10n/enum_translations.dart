@@ -1,5 +1,6 @@
 import '../models/achievement.dart';
 import '../models/app_theme.dart';
+import '../models/game_mode.dart';
 import 'app_localizations.dart';
 
 /// enumの表示名をロケールに応じて解決する
@@ -25,6 +26,14 @@ extension AchievementTypeL10n on AchievementType {
         AchievementType.games100 => l10n.achGames100Desc,
         AchievementType.allModes => l10n.achAllModesDesc,
         AchievementType.perfectDay => l10n.achPerfectDayDesc,
+      };
+}
+
+extension GameModeL10n on GameMode {
+  String difficultyLabel(AppLocalizations l10n) => switch (this) {
+        GameMode.easy => l10n.difficultyEasy,
+        GameMode.medium => l10n.difficultyMedium,
+        GameMode.hard => l10n.difficultyHard,
       };
 }
 

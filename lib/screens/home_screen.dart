@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../l10n/app_localizations.dart';
+import '../l10n/enum_translations.dart';
 import '../models/game_mode.dart';
 import '../providers.dart';
 import '../widgets/sound_toggle_button.dart';
@@ -124,7 +125,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         foregroundColor: Colors.white,
                         textStyle: const TextStyle(fontSize: 20),
                       ),
-                      child: Text(entry.$2.displayName),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(entry.$2.displayName),
+                          const SizedBox(width: 8),
+                          Text(
+                            entry.$2.difficultyLabel(l10n),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 )),

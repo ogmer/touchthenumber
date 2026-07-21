@@ -15,6 +15,21 @@ class AppLocalizationsTh extends AppLocalizations {
   String get selectGameMode => 'เลือกโหมดเกม';
 
   @override
+  String get difficultyEasy => 'มือใหม่';
+
+  @override
+  String get difficultyMedium => 'ระดับกลาง';
+
+  @override
+  String get difficultyHard => 'ระดับสูง';
+
+  @override
+  String get countdownReady => 'พร้อมไหม?';
+
+  @override
+  String get countdownGo => 'เริ่ม!';
+
+  @override
   String get ranking => 'อันดับ';
 
   @override

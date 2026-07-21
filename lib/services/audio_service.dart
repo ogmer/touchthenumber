@@ -17,6 +17,23 @@ class AudioService {
       player.setReleaseMode(ReleaseMode.stop);
     }
     _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+    // 初回再生時のデコード待ちで発生するカクつき・無音落ちを防ぐため、
+    // 起動時に全音源をあらかじめキャッシュに読み込んでおく
+    _preloadAssets();
+  }
+
+  Future<void> _preloadAssets() async {
+    try {
+      await AudioCache.instance.loadAll(const [
+        'sounds/correct.wav',
+        'sounds/error.wav',
+        'sounds/complete.wav',
+        'sounds/bgm.wav',
+        'sounds/bgm_title.wav',
+      ]);
+    } catch (e) {
+      // プリロード失敗時も、再生時に通常どおり読み込まれるので無視してよい
+    }
   }
 
   Future<void> _play(AudioPlayer player, String assetPath) async {
@@ -89,6 +106,28 @@ class AudioService {
       await _bgmPlayer.stop();
     } catch (e) {
       // 停止失敗は無視する
+    }
+  }
+
+  /// アプリがバックグラウンドに回った時にBGMを一時停止する
+  /// （バックグラウンド再生を防ぎ、位置は保持して復帰時に再開できるようにする）
+  Future<void> pauseBgmForBackground() async {
+    if (!isBgmPlaying) return;
+    try {
+      await _bgmPlayer.pause();
+    } catch (e) {
+      // 一時停止失敗は無視する
+    }
+  }
+
+  /// アプリがフォアグラウンドに戻った時、バックグラウンドで一時停止していたBGMを再開する
+  Future<void> resumeBgmFromBackground() async {
+    if (!_settingsService.isBgmEnabled) return;
+    if (_bgmPlayer.state != PlayerState.paused) return;
+    try {
+      await _bgmPlayer.resume();
+    } catch (e) {
+      // 再開失敗は無視する
     }
   }
 

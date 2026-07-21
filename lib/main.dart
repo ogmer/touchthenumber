@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/app_localizations.dart';
@@ -24,11 +25,44 @@ void main() async {
   );
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final audioService = ref.read(audioServiceProvider);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        audioService.resumeBgmFromBackground();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        audioService.pauseBgmForBackground();
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appTheme = ref.watch(themeProvider);
     final colorScheme = appTheme.colorScheme;
 
@@ -50,6 +84,11 @@ class MyApp extends ConsumerWidget {
           foregroundColor: colorScheme.primary,
           elevation: 0,
           centerTitle: true,
+          // 背景は常にライト配色のため、OSのダークモードに関わらず
+          // ステータスバーのアイコンは常に濃色で固定し、背景に埋もれないようにする
+          systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+          ),
           titleTextStyle: TextStyle(
             fontFamily: 'MPLUSRounded1c',
             fontSize: 20,

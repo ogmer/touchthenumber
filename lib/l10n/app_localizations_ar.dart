@@ -15,6 +15,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get selectGameMode => 'اختر وضع اللعب';
 
   @override
+  String get difficultyEasy => 'مبتدئ';
+
+  @override
+  String get difficultyMedium => 'متوسط';
+
+  @override
+  String get difficultyHard => 'متقدم';
+
+  @override
+  String get countdownReady => 'هل أنت مستعد؟';
+
+  @override
+  String get countdownGo => 'ابدأ';
+
+  @override
   String get ranking => 'التصنيف';
 
   @override

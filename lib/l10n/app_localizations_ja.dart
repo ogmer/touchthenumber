@@ -15,6 +15,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get selectGameMode => 'ゲームモードを選択';
 
   @override
+  String get difficultyEasy => '初心者';
+
+  @override
+  String get difficultyMedium => '中級者';
+
+  @override
+  String get difficultyHard => '上級者';
+
+  @override
+  String get countdownReady => '準備OK？';
+
+  @override
+  String get countdownGo => 'スタート';
+
+  @override
   String get ranking => 'ランキング';
 
   @override
