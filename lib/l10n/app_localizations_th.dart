@@ -24,7 +24,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get difficultyHard => 'ระดับสูง';
 
   @override
-  String get countdownReady => 'พร้อมไหม?';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => 'เริ่ม!';
@@ -43,7 +43,7 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-  String get almostFirst => 'Almost first place!';
+  String get almostFirst => 'เกือบได้ที่หนึ่งแล้ว!';
 
   @override
   String get rankingLocalTab => 'ในเครื่อง';

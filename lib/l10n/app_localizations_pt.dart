@@ -24,7 +24,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get difficultyHard => 'Avançado';
 
   @override
-  String get countdownReady => 'Preparados?';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => 'Vai!';
@@ -43,7 +43,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get almostFirst => 'Almost first place!';
+  String get almostFirst => 'Quase em primeiro!';
 
   @override
   String get rankingLocalTab => 'Local';

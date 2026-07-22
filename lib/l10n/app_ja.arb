@@ -5,7 +5,7 @@
   "difficultyEasy": "初心者",
   "difficultyMedium": "中級者",
   "difficultyHard": "上級者",
-  "countdownReady": "準備OK？",
+  "countdownReady": "Are you ready？",
   "countdownGo": "スタート",
   "newBestRecord": "自己ベスト更新！",
   "behindBest": "ベストまであと {time}",

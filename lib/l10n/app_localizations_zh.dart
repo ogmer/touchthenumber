@@ -24,7 +24,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get difficultyHard => '高级';
 
   @override
-  String get countdownReady => '准备好了吗？';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => '开始！';
@@ -43,7 +43,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get almostFirst => 'Almost first place!';
+  String get almostFirst => '差一点就是第一名！';
 
   @override
   String get rankingLocalTab => '本地';
@@ -324,7 +324,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get difficultyHard => '高級';
 
   @override
-  String get countdownReady => '準備好了嗎？';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => '開始！';
@@ -341,6 +341,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String rankLabel(int rank) {
     return '第$rank名';
   }
+
+  @override
+  String get almostFirst => '差一點就是第一名！';
 
   @override
   String get rankingLocalTab => '本機';

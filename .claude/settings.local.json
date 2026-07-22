@@ -12,7 +12,26 @@
       "Bash(flutter analyze *)",
       "Bash(flutter gen-l10n *)",
       "Bash(flutter pub *)",
-      "Bash(flutter test *)"
+      "Bash(flutter test *)",
+      "Bash(for file in app_*.arb)",
+      "Bash(do sed -i 's/\"\"countdownReady\"\": \"\".*\"\"/\"\"countdownReady\"\": \"\"Are you ready?\"\"/g' \"$file\")",
+      "Bash(done)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(grep:*)",
+      "Bash(do sed -i '/\"\"rankLabel\"\":/,/}/{ /}/a\\\\  \"\"almostFirst\"\": \"\"Almost first place!\"\",' \"$file\")",
+      "Bash(ffmpeg:*)",
+      "Bash(where:*)",
+      "Bash(winget install:*)",
+      "Bash(dir \"C:\\\\Users\\\\mrtor\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Links\\\\ffmpeg.exe\")",
+      "Bash(dir \"C:\\\\Program Files\\\\FFmpeg\\\\bin\\\\ffmpeg.exe\")",
+      "Bash(\"C:\\\\Users\\\\mrtor\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Links\\\\ffmpeg.exe\" -i bgm.mp3 -filter_complex \"[0:a][0:a]concat=n=2:v=0:a=1[out]\" -map \"[out]\" -b:a 128k -y bgm_doubled.mp3)",
+      "Bash(\"C:\\\\Users\\\\mrtor\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Links\\\\ffmpeg.exe\" -i bgm_title.mp3 -filter_complex \"[0:a][0:a]concat=n=2:v=0:a=1[out]\" -map \"[out]\" -b:a 128k -y bgm_title_doubled.mp3)",
+      "Bash(move /Y bgm_doubled.mp3 bgm.mp3:*)",
+      "Bash(move /Y bgm_title_doubled.mp3 bgm_title.mp3:*)",
+      "Bash(ls:*)",
+      "Bash(del \"\\\\?\\\\C:\\\\Users\\\\mrtor\\\\OneDrive\\\\ドキュメント\\\\touchthenumber\\\\nul\")",
+      "Bash(powershell -Command:*)",
+      "Bash(cmd //c \"del /f /q \\\\\\\\?\\\\C:\\\\Users\\\\mrtor\\\\OneDrive\\\\ドキュメント\\\\touchthenumber\\\\nul\")"
     ]
   }
 }

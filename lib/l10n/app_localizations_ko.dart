@@ -24,7 +24,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get difficultyHard => '고급';
 
   @override
-  String get countdownReady => '준비됐나요?';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => '시작!';
@@ -43,7 +43,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get almostFirst => 'Almost first place!';
+  String get almostFirst => '1위까지 조금만 더!';
 
   @override
   String get rankingLocalTab => '로컬';

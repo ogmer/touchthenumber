@@ -1,5 +1,9 @@
 # Miscellaneous
 *.class
+
+# Windows reserved device names
+nul
+NUL
 *.log
 *.pyc
 *.swp

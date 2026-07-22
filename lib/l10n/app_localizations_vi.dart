@@ -24,7 +24,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get difficultyHard => 'Nâng cao';
 
   @override
-  String get countdownReady => 'Sẵn sàng?';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => 'Bắt đầu!';
@@ -43,7 +43,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get almostFirst => 'Almost first place!';
+  String get almostFirst => 'Sắp đạt hạng nhất!';
 
   @override
   String get rankingLocalTab => 'Cục bộ';

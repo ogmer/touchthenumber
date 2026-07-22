@@ -5,7 +5,7 @@
   "difficultyEasy": "Beginner",
   "difficultyMedium": "Intermediate",
   "difficultyHard": "Advanced",
-  "countdownReady": "Ready?",
+  "countdownReady": "Are you ready？",
   "countdownGo": "Go!",
   "newBestRecord": "New Best!",
   "behindBest": "{time} off your best",

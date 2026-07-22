@@ -158,7 +158,7 @@ abstract class AppLocalizations {
   /// No description provided for @countdownReady.
   ///
   /// In en, this message translates to:
-  /// **'Ready?'**
+  /// **'Are you ready？'**
   String get countdownReady;
 
   /// No description provided for @countdownGo.

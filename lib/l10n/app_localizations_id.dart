@@ -24,7 +24,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get difficultyHard => 'Mahir';
 
   @override
-  String get countdownReady => 'Siap?';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => 'Mulai!';

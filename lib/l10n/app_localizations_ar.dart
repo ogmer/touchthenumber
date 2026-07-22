@@ -24,7 +24,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get difficultyHard => 'متقدم';
 
   @override
-  String get countdownReady => 'هل أنت مستعد؟';
+  String get countdownReady => 'Are you ready？';
 
   @override
   String get countdownGo => 'ابدأ';
