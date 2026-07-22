@@ -56,3 +56,5 @@ android/app/*.keystore
 
 # フォントサブセット生成用の元フォント（tool/subset_font.pyが自動DL）
 tool/_font_src/
+
+node_modules/
