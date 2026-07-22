@@ -49,5 +49,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Signing keys (sensitive - do not commit)
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+
 # フォントサブセット生成用の元フォント（tool/subset_font.pyが自動DL）
 tool/_font_src/

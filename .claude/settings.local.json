@@ -13,7 +13,13 @@
       "Bash(flutter gen-l10n *)",
       "Bash(flutter pub *)",
       "Bash(flutter test *)",
-      "Bash(cmd //c \"del /f /q \\\\\\\\?\\\\C:\\\\Users\\\\mrtor\\\\OneDrive\\\\ドキュメント\\\\touchthenumber\\\\nul\")"
+      "Bash(cmd //c \"del /f /q \\\\\\\\?\\\\C:\\\\Users\\\\mrtor\\\\OneDrive\\\\ドキュメント\\\\touchthenumber\\\\nul\")",
+      "Bash(keytool:*)",
+      "Bash(where:*)",
+      "Bash(dir /s /b \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin\\\\keytool.exe\")",
+      "Bash(dir /s /b \"C:\\\\Program Files\\\\Java\\\\*\\\\bin\\\\keytool.exe\")",
+      "Bash(\"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin\\\\keytool.exe\" -genkey -v -keystore \"C:\\\\Users\\\\mrtor\\\\OneDrive\\\\ドキュメント\\\\touchthenumber\\\\android\\\\app\\\\release-keystore.jks\" -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias release -storepass touchthenumber123 -keypass touchthenumber123 -dname \"CN=Touch The Number, OU=Development, O=ogmer, L=Tokyo, ST=Tokyo, C=JP\")",
+      "Bash(flutter clean:*)"
     ]
   }
 }
