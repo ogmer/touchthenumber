@@ -12,12 +12,15 @@ class AudioService {
   final AudioPlayer _completePlayer = AudioPlayer();
   final AudioPlayer _bgmPlayer = AudioPlayer();
 
+  // 初期化完了を待つためのFuture
+  late final Future<void> _initializationComplete;
+
   AudioService(this._settingsService) {
     for (final player in [_correctPlayer, _errorPlayer, _completePlayer]) {
       player.setReleaseMode(ReleaseMode.stop);
     }
     _bgmPlayer.setReleaseMode(ReleaseMode.loop);
-    _init();
+    _initializationComplete = _init();
   }
 
   Future<void> _init() async {
@@ -67,10 +70,15 @@ class AudioService {
     }
   }
 
-  Future<void> _play(AudioPlayer player, String assetPath) async {
+  Future<void> _play(AudioPlayer player, String assetPath,
+      {double? volume}) async {
+    // 初期化が完了するまで待つ（起動時の音の途切れを防ぐ）
+    await _initializationComplete;
+
     try {
       await player.stop();
-      await player.play(AssetSource(assetPath));
+      await player.play(AssetSource(assetPath),
+          volume: volume ?? _settingsService.soundVolume);
     } catch (e) {
       // 音声デバイスが使えない環境では無音で続行する
     }
@@ -96,26 +104,28 @@ class AudioService {
 
   // ミュート解除時に「直前に流していたBGM」を再開するために覚えておく
   String? _lastBgmAsset;
-  double _lastBgmVolume = 0.4;
 
   /// プレイ中BGM（アップテンポ）
-  Future<void> startGameBgm() =>
-      _startBgm('sounds/bgm.mp3', volume: 0.4);
+  Future<void> startGameBgm() => _startBgm('sounds/bgm.mp3');
 
   /// タイトル・メニューBGM（落ち着いた曲調）
-  Future<void> startTitleBgm() =>
-      _startBgm('sounds/bgm_title.mp3', volume: 0.35);
+  Future<void> startTitleBgm() => _startBgm('sounds/bgm_title.mp3');
 
-  Future<void> _startBgm(String assetPath, {required double volume}) async {
+  Future<void> _startBgm(String assetPath) async {
+    // 初期化が完了するまで待つ（起動時の音の途切れを防ぐ）
+    await _initializationComplete;
+
     // BGMがオフでも「次にどの曲を流すべきか」は記録しておく
     _lastBgmAsset = assetPath;
-    _lastBgmVolume = volume;
     if (!_settingsService.isBgmEnabled) return;
     try {
+      // BGMを確実にループさせるため、再生前にループモードを設定する
+      await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
       // play()はsetSource→resumeをまとめて行い、既存の曲があれば切り替える。
       // stop/setVolumeを個別にawaitするとWebでトラック切り替えに失敗する
       // ことがあるため、音量指定ごと1回のplay()で開始する
-      await _bgmPlayer.play(AssetSource(assetPath), volume: volume);
+      await _bgmPlayer.play(AssetSource(assetPath),
+          volume: _settingsService.bgmVolume);
     } catch (e) {
       // 音声デバイスが使えない環境では無音で続行する
       debugPrint('BGM再生に失敗: $assetPath / $e');
@@ -126,7 +136,16 @@ class AudioService {
   Future<void> resumeBgm() async {
     final asset = _lastBgmAsset;
     if (asset == null) return;
-    await _startBgm(asset, volume: _lastBgmVolume);
+    await _startBgm(asset);
+  }
+
+  /// BGMの音量を変更する（再生中の曲に即座に反映）
+  Future<void> updateBgmVolume(double volume) async {
+    try {
+      await _bgmPlayer.setVolume(volume);
+    } catch (e) {
+      // 音量変更失敗は無視する
+    }
   }
 
   /// BGMが再生中かどうか（Webのオートプレイ制限で開始に失敗した場合の再試行判定用）

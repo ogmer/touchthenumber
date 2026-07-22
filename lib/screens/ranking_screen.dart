@@ -21,6 +21,7 @@ class RankingScreen extends ConsumerStatefulWidget {
 
 class _RankingScreenState extends ConsumerState<RankingScreen> {
   GameMode selectedMode = GameMode.easy;
+  late PageController _pageController;
 
   // ローカルランキング
   List<RankingEntry> rankings = [];
@@ -34,8 +35,15 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: GameMode.values.indexOf(selectedMode));
     _loadRankings();
     if (ref.read(onlineEnabledProvider)) _loadOnline();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRankings() async {
@@ -73,9 +81,24 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   }
 
   void _selectMode(GameMode mode) {
+    final pageIndex = GameMode.values.indexOf(mode);
+    _pageController.animateToPage(
+      pageIndex,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() => selectedMode = mode);
     _loadRankings();
     if (ref.read(onlineEnabledProvider)) _loadOnline();
+  }
+
+  void _onPageChanged(int index) {
+    final mode = GameMode.values[index];
+    if (mode != selectedMode) {
+      setState(() => selectedMode = mode);
+      _loadRankings();
+      if (ref.read(onlineEnabledProvider)) _loadOnline();
+    }
   }
 
   Future<void> _resetRankings() async {
@@ -128,7 +151,19 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.ranking), actions: actions),
         body: Column(
-          children: [modeSelector, Expanded(child: _buildLocalList(l10n))],
+          children: [
+            modeSelector,
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: GameMode.values.length,
+                itemBuilder: (context, index) {
+                  return _buildLocalList(l10n);
+                },
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -152,8 +187,22 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildLocalList(l10n),
-                  _buildOnlineList(l10n),
+                  PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: GameMode.values.length,
+                    itemBuilder: (context, index) {
+                      return _buildLocalList(l10n);
+                    },
+                  ),
+                  PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: GameMode.values.length,
+                    itemBuilder: (context, index) {
+                      return _buildOnlineList(l10n);
+                    },
+                  ),
                 ],
               ),
             ),

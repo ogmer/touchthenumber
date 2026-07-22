@@ -24,6 +24,8 @@ class SpyAudioService implements AudioService {
   @override
   Future<void> resumeBgmFromBackground() async => calls.add('resumeBgmFromBackground');
   @override
+  Future<void> updateBgmVolume(double volume) async => calls.add('updateBgmVolume');
+  @override
   bool get isBgmPlaying => false;
   @override
   Future<void> playCorrectSound() async {}

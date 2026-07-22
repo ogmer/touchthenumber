@@ -183,7 +183,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               const SizedBox(height: 6),
                               NeumorphicButton(
                                 onPressed: () => _startGame(entry.$2),
-                                accent: true,
+                                color: entry.$2.difficultyColor,
                                 borderRadius: 24,
                                 depth: 7,
                                 padding: const EdgeInsets.symmetric(

@@ -142,6 +142,9 @@ class NeumorphicButton extends StatefulWidget {
   /// 面をアクセント色で塗る（主要アクション用）。
   final bool accent;
 
+  /// カスタムカラー（指定時はこの色を使用）。
+  final Color? color;
+
   const NeumorphicButton({
     super.key,
     required this.onPressed,
@@ -151,6 +154,7 @@ class NeumorphicButton extends StatefulWidget {
     this.shape = BoxShape.rectangle,
     this.depth = 6,
     this.accent = false,
+    this.color,
   });
 
   @override
@@ -164,7 +168,7 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
   Widget build(BuildContext context) {
     final palette = NeumorphicPalette.of(context);
     final enabled = widget.onPressed != null;
-    final surface = widget.accent ? palette.accent : palette.base;
+    final surface = widget.color ?? (widget.accent ? palette.accent : palette.base);
 
     return GestureDetector(
       onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
@@ -186,12 +190,12 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
             heightFactor: 1,
             child: DefaultTextStyle.merge(
               style: TextStyle(
-                color: widget.accent ? Colors.white : palette.accent,
+                color: (widget.accent || widget.color != null) ? Colors.white : palette.accent,
                 fontWeight: FontWeight.bold,
               ),
               child: IconTheme.merge(
                 data: IconThemeData(
-                  color: widget.accent ? Colors.white : palette.accent,
+                  color: (widget.accent || widget.color != null) ? Colors.white : palette.accent,
                 ),
                 child: widget.child,
               ),

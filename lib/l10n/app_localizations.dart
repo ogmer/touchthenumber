@@ -185,6 +185,12 @@ abstract class AppLocalizations {
   /// **'Rank #{rank}'**
   String rankLabel(int rank);
 
+  /// No description provided for @almostFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost first place!'**
+  String get almostFirst;
+
   /// No description provided for @rankingLocalTab.
   ///
   /// In en, this message translates to:

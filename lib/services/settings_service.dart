@@ -4,6 +4,8 @@ import '../models/app_theme.dart';
 class SettingsService {
   static const String _soundEnabledKey = 'sound_enabled';
   static const String _bgmEnabledKey = 'bgm_enabled';
+  static const String _soundVolumeKey = 'sound_volume';
+  static const String _bgmVolumeKey = 'bgm_volume';
   static const String _themeKey = 'app_theme';
   static const String _localeKey = 'locale_code';
   static const String _playerNameKey = 'player_name';
@@ -22,6 +24,20 @@ class SettingsService {
 
   Future<void> setBgmEnabled(bool enabled) async {
     await _prefs.setBool(_bgmEnabledKey, enabled);
+  }
+
+  /// 効果音の音量（0.0～1.0）。デフォルトは1.0（最大）
+  double get soundVolume => _prefs.getDouble(_soundVolumeKey) ?? 1.0;
+
+  Future<void> setSoundVolume(double volume) async {
+    await _prefs.setDouble(_soundVolumeKey, volume.clamp(0.0, 1.0));
+  }
+
+  /// BGMの音量（0.0～1.0）。デフォルトは0.4
+  double get bgmVolume => _prefs.getDouble(_bgmVolumeKey) ?? 0.4;
+
+  Future<void> setBgmVolume(double volume) async {
+    await _prefs.setDouble(_bgmVolumeKey, volume.clamp(0.0, 1.0));
   }
 
   AppTheme get theme {

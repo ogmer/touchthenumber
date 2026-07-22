@@ -43,6 +43,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get almostFirst => 'もう少しで1位！';
+
+  @override
   String get rankingLocalTab => 'ローカル';
 
   @override

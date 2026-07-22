@@ -43,6 +43,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get almostFirst => 'Almost first place!';
+
+  @override
   String get rankingLocalTab => '로컬';
 
   @override

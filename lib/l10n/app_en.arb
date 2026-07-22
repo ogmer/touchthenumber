@@ -20,6 +20,7 @@
       "rank": { "type": "int" }
     }
   },
+  "almostFirst": "Almost first place!",
   "rankingLocalTab": "Local",
   "rankingOnlineTab": "Online",
   "nickname": "Nickname",

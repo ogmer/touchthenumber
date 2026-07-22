@@ -151,3 +151,36 @@ class BgmEnabledNotifier extends Notifier<bool> {
   }
 }
 
+/// 効果音の音量（0.0～1.0）
+final soundVolumeProvider = NotifierProvider<SoundVolumeNotifier, double>(
+  SoundVolumeNotifier.new,
+);
+
+class SoundVolumeNotifier extends Notifier<double> {
+  @override
+  double build() => ref.watch(settingsServiceProvider).soundVolume;
+
+  Future<void> set(double value) async {
+    await ref.read(settingsServiceProvider).setSoundVolume(value);
+    state = value;
+  }
+}
+
+/// BGMの音量（0.0～1.0）
+final bgmVolumeProvider = NotifierProvider<BgmVolumeNotifier, double>(
+  BgmVolumeNotifier.new,
+);
+
+class BgmVolumeNotifier extends Notifier<double> {
+  @override
+  double build() => ref.watch(settingsServiceProvider).bgmVolume;
+
+  Future<void> set(double value) async {
+    await ref.read(settingsServiceProvider).setBgmVolume(value);
+    state = value;
+    // BGMの音量変更を再生中の曲に即座に反映
+    final audio = ref.read(audioServiceProvider);
+    await audio.updateBgmVolume(value);
+  }
+}
+

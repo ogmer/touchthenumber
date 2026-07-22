@@ -54,6 +54,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final currentTheme = ref.watch(themeProvider);
     final soundOn = ref.watch(soundEnabledProvider);
     final bgmOn = ref.watch(bgmEnabledProvider);
+    final soundVolume = ref.watch(soundVolumeProvider);
+    final bgmVolume = ref.watch(bgmVolumeProvider);
     final localeCode = codeFromLocale(ref.watch(localeProvider));
     final onlineEnabled = ref.watch(onlineEnabledProvider);
 
@@ -115,15 +117,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 8),
           const Divider(),
-          _buildSwitchTile(
+          _buildSwitchTileWithVolume(
             title: l10n.sound,
             subtitle: l10n.soundSubtitle,
             icon: soundOn ? Icons.volume_up : Icons.volume_off,
             value: soundOn,
             onChanged: (value) =>
                 ref.read(soundEnabledProvider.notifier).set(value),
+            volume: soundVolume,
+            onVolumeChanged: (value) =>
+                ref.read(soundVolumeProvider.notifier).set(value),
           ),
-          _buildSwitchTile(
+          _buildSwitchTileWithVolume(
             title: l10n.bgm,
             subtitle: l10n.bgmSubtitle,
             icon: bgmOn ? Icons.music_note : Icons.music_off,
@@ -138,6 +143,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 await audio.stopBgm();
               }
             },
+            volume: bgmVolume,
+            onVolumeChanged: (value) =>
+                ref.read(bgmVolumeProvider.notifier).set(value),
           ),
           const Divider(),
           // オンラインランキング用のニックネーム（Supabase設定時のみ表示）
@@ -224,20 +232,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// サウンド/BGMのオンオフ。ニューモフィズムの面にアイコンとMaterialスイッチを載せる
-  Widget _buildSwitchTile({
+  /// サウンド/BGMのオンオフと音量調整スライダーを統合したタイル
+  Widget _buildSwitchTileWithVolume({
     required String title,
     required String subtitle,
     required IconData icon,
     required bool value,
     required ValueChanged<bool> onChanged,
+    required double volume,
+    required ValueChanged<double> onVolumeChanged,
   }) {
     final accent = Theme.of(context).colorScheme.primary;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: NeumorphicContainer(
         borderRadius: 20,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             Icon(icon, color: accent),
@@ -260,6 +270,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
+            if (value) ...[
+              Icon(Icons.volume_down, color: accent, size: 20),
+              SizedBox(
+                width: 150,
+                child: Slider(
+                  value: volume,
+                  onChanged: onVolumeChanged,
+                  min: 0.0,
+                  max: 1.0,
+                  divisions: 20,
+                  label: '${(volume * 100).round()}%',
+                ),
+              ),
+              Icon(Icons.volume_up, color: accent, size: 20),
+              const SizedBox(width: 8),
+            ],
             Switch(value: value, onChanged: onChanged),
           ],
         ),

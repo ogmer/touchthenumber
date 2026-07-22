@@ -43,6 +43,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get almostFirst => 'Almost first place!';
+
+  @override
   String get rankingLocalTab => 'Locale';
 
   @override

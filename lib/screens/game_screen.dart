@@ -350,6 +350,27 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   ],
                 ),
               ),
+              // 2位の時の特別な演出（中毒性を高める）
+              if (rank == 2) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.almostFirst,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
+                  ],
+                ),
+              ],
             ],
             if (newAchievements.isNotEmpty) ...[
               const SizedBox(height: 16),
