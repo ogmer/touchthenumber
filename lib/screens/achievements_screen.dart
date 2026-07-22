@@ -75,7 +75,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                ...AchievementType.values.map(
+                ...AchievementType.displayOrder.map(
                   (type) => _buildAchievementCard(l10n, type),
                 ),
               ],
@@ -86,6 +86,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
   Widget _buildAchievementCard(AppLocalizations l10n, AchievementType type) {
     final isUnlocked = _isUnlocked(type);
     final achievement = _getAchievement(type);
+    final isHiddenAndLocked = type.isHidden && !isUnlocked;
 
     // 未解除は凹んだ面（＝まだ手に入っていない）、解除済みは浮き上がった面で表現する
     return Padding(
@@ -108,7 +109,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
                 width: 50,
                 height: 50,
                 child: Icon(
-                  type.icon,
+                  isHiddenAndLocked ? Icons.help_outline : type.icon,
                   color: isUnlocked ? Colors.white : Colors.grey[500],
                   size: 28,
                 ),
@@ -120,7 +121,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    type.title(l10n),
+                    isHiddenAndLocked ? '???' : type.title(l10n),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -131,7 +132,7 @@ class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    type.description(l10n),
+                    isHiddenAndLocked ? '???' : type.description(l10n),
                     style: TextStyle(
                       color: isUnlocked ? Colors.black87 : Colors.grey,
                     ),

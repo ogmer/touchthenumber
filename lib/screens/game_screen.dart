@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:confetti/confetti.dart';
+import 'package:share_plus/share_plus.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/enum_translations.dart';
 import '../models/game_mode.dart';
@@ -406,6 +408,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: () => _shareResult(l10n, timeString, rank),
+            icon: const Icon(Icons.share),
+            tooltip: l10n.shareRecord,
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -426,6 +433,34 @@ class _GameScreenState extends ConsumerState<GameScreen>
         ],
       ),
     );
+  }
+
+  /// 結果をOSの共有シートで共有する。
+  /// 共有非対応の環境ではクリップボードにコピーする。
+  Future<void> _shareResult(AppLocalizations l10n, String timeString, int? rank) async {
+    final text = l10n.shareRecordText(
+      widget.gameMode.displayName,
+      timeString,
+      rank ?? 0,
+    );
+
+    try {
+      final result = await SharePlus.instance.share(ShareParams(text: text));
+      if (result.status == ShareResultStatus.unavailable) {
+        await _copyToClipboard(l10n, text);
+      }
+    } catch (e) {
+      await _copyToClipboard(l10n, text);
+    }
+  }
+
+  Future<void> _copyToClipboard(AppLocalizations l10n, String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.copiedToClipboard)),
+      );
+    }
   }
 
   Widget _buildTile(int index, double fontSize) {
