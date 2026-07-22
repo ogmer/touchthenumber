@@ -15,23 +15,6 @@ flutter test      # テスト
 flutter analyze   # 静的解析
 ```
 
-## 素材の再生成
-
-日本語テキストを追加したらフォントのサブセットを再生成する（未実行だとWebで未収録の漢字が表示されない）:
-
-```sh
-py -m pip install fonttools brotli   # 初回のみ
-py tool/subset_font.py
-```
-
-音源（BGM・効果音）を変更したら:
-
-```sh
-dart run tool/generate_sounds.dart
-py -m pip install lameenc     # 初回のみ
-py tool/compress_bgm.py       # BGMをMP3圧縮（サイズ削減。効果音はWAVのまま）
-```
-
 ## オンラインランキング（任意）
 
 Supabaseを使ったデイリーオンラインランキング。**未設定でもアプリはローカルのみで通常どおり動く**（キーを渡したときだけ有効化）。
